@@ -1690,11 +1690,15 @@ double checksum=0;
                 totalsolveBC += 1; //BC_subtotal[bcidx] - BCis_solved[bcidx];
 			    BCis_solved[recvRankNum]++;
                         
+                //printf("bcbc--3--iam=%d, BCis_solved[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum]);
+                //fflush(stdout);
 			
                 if(BcTree_getDestCount(LBtree_ptr[lk],'d')>0){
 	                //BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,checkend,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 	                BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 			    }
+                //printf("bcbc--444--iam=%d\n",iam);
+                //fflush(stdout);
 	
 		        lsub = Lrowind_bc_ptr[lk];
 	

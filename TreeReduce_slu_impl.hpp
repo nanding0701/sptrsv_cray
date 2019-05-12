@@ -53,7 +53,7 @@ namespace SuperLU_ASYNCOMM {
 	    double t1;
         long RDsendoffset=0;
         Int new_iProc;
-        Int new_msgSize = msgSize;// + 1;
+        Int new_msgSize = msgSize + 1;
         if(this->myRank_!=this->myRoot_){
             //t1 = SuperLU_timer_();
 		    Int iProc = this->myRoot_;

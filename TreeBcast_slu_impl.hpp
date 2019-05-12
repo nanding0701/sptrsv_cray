@@ -194,7 +194,7 @@ namespace SuperLU_ASYNCOMM {
         //Int new_msgSize;
         // MPI_Status status;
         Int new_iProc;
-        Int new_msgSize = msgSize; //+1;
+        Int new_msgSize = msgSize +1;
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
                 Int iProc = this->myDests_[idxRecv];
                 //t1 = SuperLU_timer_();
