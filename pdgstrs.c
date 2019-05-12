@@ -1633,7 +1633,7 @@ if(Llu->inv == 1){
 #ifdef oneside
 int shift=0;
 int recvRankNum=-1;
-double checksum=0;
+int checksum=0;
     while( nfrecv1 < nfrecvx+nfrecvmod ){
         thread_id = 0;
         //printf("sss--000--iam=%d,%lf,%d\n",iam,nfrecv1,nfrecvx+nfrecvmod);
@@ -1678,16 +1678,19 @@ double checksum=0;
                 checksum=0;
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
                 for (int tmp=0; tmp<checkend; ++tmp){
+<<<<<<< HEAD
                     //if(!isnan(recvbuf0[tmp])) {
                         checksum += recvbuf0[tmp];
                     //}
+=======
+                    if(!isnan(recvbuf0[tmp])) {
+                        checksum += 1;
+                    }
+>>>>>>> parent of 272d313... checksumrunok /xtrue most -10, but expensive
                 }
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
+                //printf("bcbc--222--iam=%d, checksum=%d,should be %d\n",iam,checksum,(int)recvbuf0[checkend]);
                 //fflush(stdout);
-                
-                if((int)checksum!=(int)recvbuf0[checkend]) {
-                   // printf("bcbc--333--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
-                   // fflush(stdout);
+                if( checksum != (int) recvbuf0[checkend]) {
                    if(shift>0){
                         validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                         validBCQindex[bcidx]=-1;
@@ -1781,13 +1784,13 @@ double checksum=0;
                 checksum=0;
                 checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
                 for (int tmp=0; tmp<checkend; tmp++){
-                    if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
+                    if(!isnan(recvbuf0[tmp])) {
+                        checksum += 1;
+                    }
                 }
                 //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
                 //fflush(stdout);
-                //if(abs(checksum-recvbuf0[checkend])<0.00000001) {
-                if((int)checksum!=(int)recvbuf0[checkend]) {
-                //if(abs(checksum-recvbuf0[checkend])!=0) {
+                if(abs(checksum-recvbuf0[checkend])!=0) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
                         validRDQindex[rdidx]=-1;
