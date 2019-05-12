@@ -14,6 +14,8 @@ namespace SuperLU_ASYNCOMM{
 	extern "C" {
 #endif
 
+    uint32_t update_crc_32(uint32_t crc_32_val, unsigned char c);
+    uint16_t update_crc_16(uint16_t crc_16_val, unsigned char c);
 	BcTree BcTree_Create_oneside(MPI_Comm comm, Int* ranks, Int rank_cnt, Int msgSize, double rseed, char precision, int* BufSize, int Pc){
 		assert(msgSize>0);
 		if(precision=='d'){
@@ -84,7 +86,11 @@ namespace SuperLU_ASYNCOMM{
 			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
             double *sendbuf = (double*) localBuffer;
             double *sendbufval;
-            double checksum = 0.0;
+            //double checksum = 0.0;
+            //uint32_t crc_32_val;
+	        //crc_32_val = 0xffffffffL;
+            uint16_t crc_16_val;
+            crc_16_val = 0x0000;
             ////int iam;
 	 		////double t1;
             ////t1 = SuperLU_timer_();
@@ -92,10 +98,11 @@ namespace SuperLU_ASYNCOMM{
                 ABORT("Malloc fails for sendbuf[]");
             for(Int i = 0; i<msgSize;++i){
                 sendbufval[i] = sendbuf[i];
-                
-                if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
+                //crc_32_val=update_crc_32(crc_32_val, sendbufval[i]);
+                crc_16_val=update_crc_16(crc_16_val, sendbufval[i]);
+                //if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
             }
-            sendbufval[msgSize] = checksum;
+            sendbufval[msgSize] = crc_16_val;
             ////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
             ////fflush(stdout);
 			////msgSize += 1;
@@ -115,7 +122,10 @@ namespace SuperLU_ASYNCOMM{
 		        TreeReduce_slu<double>* ReduceTree = (TreeReduce_slu<double>*) Tree;
                 double *sendbuf = (double*) localBuffer;
                 double *sendbufval;
-                double checksum = 0.0;
+                //uint32_t crc_32_val;
+	            //crc_32_val = 0xffffffffL;
+                uint16_t crc_16_val;
+                crc_16_val = 0x0000;
                 //int iam;
 	 		    //double t1;
                 //t1 = SuperLU_timer_();
@@ -123,9 +133,11 @@ namespace SuperLU_ASYNCOMM{
                         ABORT("Malloc fails for sendbuf[]");
                 for(Int i = 0; i<msgSize;++i){
                     sendbufval[i] = sendbuf[i];
-                    if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
+                    crc_16_val=update_crc_16(crc_16_val, sendbufval[i]);
+                    //crc_32_val=update_crc_32(crc_32_val, sendbufval[i]);
+                    //if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
                 }
-                sendbufval[msgSize] = checksum;
+                sendbufval[msgSize] = crc_16_val;
 	            //////onesidecomm_rd[0] += SuperLU_timer_() - t1;
                 //////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
                 //////fflush(stdout);

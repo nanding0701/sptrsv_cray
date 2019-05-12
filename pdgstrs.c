@@ -1633,7 +1633,8 @@ if(Llu->inv == 1){
 #ifdef oneside
 int shift=0;
 int recvRankNum=-1;
-double checksum=0;
+uint32_t crc_32_val;
+uint16_t crc_16_val;
     while( nfrecv1 < nfrecvx+nfrecvmod ){
         thread_id = 0;
         //printf("sss--000--iam=%d,%lf,%d\n",iam,nfrecv1,nfrecvx+nfrecvmod);
@@ -1675,17 +1676,21 @@ double checksum=0;
 
                 lk = LBj( k, grid );    /* local block number */
                 
-                checksum=0;
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
+	            crc_16_val = 0x0000;
+	            //crc_32_val = 0xffffffffL;
                 for (int tmp=0; tmp<checkend; ++tmp){
-                    if(!isnan(recvbuf0[tmp])) {
-                        checksum += recvbuf0[tmp];
-                    }
+                    //crc_32_val=update_crc_32(crc_32_val, recvbuf0[tmp]); 
+                    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
+                   // if(!isnan(recvbuf0[tmp])) {
+                   //     checksum += recvbuf0[tmp];
+                   //}
                 }
                 //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
                 //fflush(stdout);
                 
-                if((int)checksum!=(int)recvbuf0[checkend]) {
+                if((uint16_t)crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
                    // printf("bcbc--333--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
                    // fflush(stdout);
                    if(shift>0){
@@ -1778,15 +1783,19 @@ double checksum=0;
                 }    
                 lk = LBi( k, grid );
                 
-                checksum=0;
                 checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
-                for (int tmp=0; tmp<checkend; tmp++){
-                    if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
+	            //crc_32_val = 0xffffffffL;
+	            crc_16_val = 0x0000;
+                for (int tmp=0; tmp<checkend; ++tmp){
+                    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
+                    //if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
                 }
                 //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
                 //fflush(stdout);
                 //if(abs(checksum-recvbuf0[checkend])<0.00000001) {
-                if((int)checksum!=(int)recvbuf0[checkend]) {
+                if((uint16_t)crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
+                //if((int)checksum!=(int)recvbuf0[checkend]) {
                 //if(abs(checksum-recvbuf0[checkend])!=0) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
