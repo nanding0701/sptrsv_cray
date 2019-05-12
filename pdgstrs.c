@@ -1678,9 +1678,9 @@ double checksum=0;
                 checksum=0;
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
                 for (int tmp=0; tmp<checkend; ++tmp){
-                    if(!isnan(recvbuf0[tmp])) {
+                    //if(!isnan(recvbuf0[tmp])) {
                         checksum += recvbuf0[tmp];
-                    }
+                    //}
                 }
                 //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
                 //fflush(stdout);
