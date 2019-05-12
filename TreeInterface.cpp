@@ -93,7 +93,7 @@ namespace SuperLU_ASYNCOMM{
             for(Int i = 0; i<msgSize;++i){
                 sendbufval[i] = sendbuf[i];
                 
-                if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
+                if(!std::isnan(sendbuf[i])) checksum += 1;
             }
             sendbufval[msgSize] = checksum;
             ////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
@@ -123,7 +123,7 @@ namespace SuperLU_ASYNCOMM{
                         ABORT("Malloc fails for sendbuf[]");
                 for(Int i = 0; i<msgSize;++i){
                     sendbufval[i] = sendbuf[i];
-                    if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
+                    if(!std::isnan(sendbuf[i])) checksum += 1;
                 }
                 sendbufval[msgSize] = checksum;
 	            //////onesidecomm_rd[0] += SuperLU_timer_() - t1;

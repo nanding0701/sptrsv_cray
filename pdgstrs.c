@@ -1633,7 +1633,7 @@ if(Llu->inv == 1){
 #ifdef oneside
 int shift=0;
 int recvRankNum=-1;
-double checksum=0;
+int checksum=0;
     while( nfrecv1 < nfrecvx+nfrecvmod ){
         thread_id = 0;
         //printf("sss--000--iam=%d,%lf,%d\n",iam,nfrecv1,nfrecvx+nfrecvmod);
@@ -1675,22 +1675,30 @@ double checksum=0;
 
                 lk = LBj( k, grid );    /* local block number */
                 
-                //checksum=0;
-                //checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
-                //for (int tmp=0; tmp<checkend; ++tmp){
-                //    if(!isnan(recvbuf0[tmp])) {
-                //        checksum += recvbuf0[tmp];
-                //    }
-                //}
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
+                checksum=0;
+                checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
+                for (int tmp=0; tmp<checkend; ++tmp){
+                    if(!isnan(recvbuf0[tmp])) {
+                        checksum += 1;
+                    }
+                }
+                //printf("bcbc--222--iam=%d, checksum=%d,should be %d\n",iam,checksum,(int)recvbuf0[checkend]);
                 //fflush(stdout);
-                //if(abs(checksum-recvbuf0[checkend])!=0) continue;
-                //t= SuperLU_timer_();
+                if( checksum != (int) recvbuf0[checkend]) {
+                   if(shift>0){
+                        validBCQindex[bcidx-shift]=validBCQindex[bcidx];
+                        validBCQindex[bcidx]=-1;
+                        //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                        //fflush(stdout);
+                   }
+                   continue;
+                }
+                    //t= SuperLU_timer_();
                 
                 totalsolveBC += 1; //BC_subtotal[bcidx] - BCis_solved[bcidx];
 			    BCis_solved[recvRankNum]++;
                         
-                //printf("bcbc--3--iam=%d, BCis_solved[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum]);
+                //printf("bcbc--3--iam=%d, BCis_solved[%d]=%d/%d\n",iam,recvRankNum,BCis_solved[recvRankNum],BufSize[recvRankNum]);
                 //fflush(stdout);
 			
                 if(BcTree_getDestCount(LBtree_ptr[lk],'d')>0){
@@ -1767,17 +1775,22 @@ double checksum=0;
                 }    
                 lk = LBi( k, grid );
                 
-                //checksum=0;
-                //checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
-                //for (int tmp=0; tmp<checkend; tmp++){
-                //    if(!isnan(recvbuf0[tmp])) {
-                //        checksum += recvbuf0[tmp];
-                //    }
-                //}
+                checksum=0;
+                checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
+                for (int tmp=0; tmp<checkend; tmp++){
+                    if(!isnan(recvbuf0[tmp])) {
+                        checksum += 1;
+                    }
+                }
                 //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
                 //fflush(stdout);
-                //if(abs(checksum-recvbuf0[checkend])!=0) continue;
-              
+                if(abs(checksum-recvbuf0[checkend])!=0) {
+                   if(shift>0){
+                        validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                        validRDQindex[rdidx]=-1;
+                   }
+                   continue;
+                }
 	            //t = SuperLU_timer_();
                 totalsolveRD += 1; //RD_subtotal[rdidx]-RDis_solved[rdidx];
                 
