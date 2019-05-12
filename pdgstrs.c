@@ -1651,16 +1651,17 @@ double checksum=0;
             //}
             for (bcidx=0;bcidx<Pr;bcidx++){
             //for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
-                printf("iam=%d,validBCQindex[%d]=%d\n",iam,bcidx,validBCQindex[bcidx]);
-                if (validBCQindex[bcidx]=-1) continue;
+                //printf("iam=%d,validBCQindex[%d]=%d\n",iam,bcidx,validBCQindex[bcidx]);
+                //fflush(stdout);
+                if (validBCQindex[bcidx]==-1) continue;
 
                 recvRankNum=validBCQindex[bcidx];  //bcidx; //validBCQindex[bcidx];
                 i=BC_taskbuf_offset[recvRankNum]+BCis_solved[recvRankNum]*maxrecvsz; //BCis_solved[bcidx];	
                 recvbuf0 = &BC_taskq[i];
                 k = *recvbuf0;
                 
-                printf("bcbc--111--iam=%d, bcidx=%d,k=%d\n",iam,bcidx,k);
-                fflush(stdout);
+                //printf("bcbc--111--iam=%d, bcidx=%d,k=%d\n",iam,bcidx,k);
+                //fflush(stdout);
 	            
                 if (k < 0) {
                   // if(shift>0){
@@ -1730,8 +1731,8 @@ double checksum=0;
                  //       //fflush(stdout);
                  //  }
                }
-               printf("iam=%d,BCis_solved[%d]=%d,BufSize[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum],recvRankNum,BufSize[recvRankNum]); 
-               fflush(stdout);
+               //printf("iam=%d,BCis_solved[%d]=%d,BufSize[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum],recvRankNum,BufSize[recvRankNum]); 
+               //fflush(stdout);
             } // for bcidx 
 
                 //TOC(t2, t1);
@@ -1740,7 +1741,9 @@ double checksum=0;
        
     if (totalsolveRD < nfrecvmod){
         shift=0;
-       for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
+       for (rdidx=0;rdidx<Pc ;rdidx++){
+       //for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
+                if (validRDQindex[rdidx]==-1) continue;
                 //if (rdidx == iam_row) continue;
                 //if (BufSize_rd[rdidx] == 0) continue;
                 //if(RDis_solved[rdidx] == BufSize_rd[rdidx]) continue;
@@ -1749,13 +1752,13 @@ double checksum=0;
                 ird=RD_taskbuf_offset[recvRankNum]+RDis_solved[recvRankNum]*maxrecvsz;
                 recvbuf0 = &RD_taskq[ird];
                 k = *recvbuf0;
-                printf("rdrd--111--iam=%d, rdidx=%d,k=%d\n",iam,rdidx,k);
-                fflush(stdout);
+                //printf("rdrd--111--iam=%d, rdidx=%d,k=%d\n",iam,rdidx,k);
+                //fflush(stdout);
 	            if (k < 0) { 
-                   if(shift>0){
-                        validRDQindex[rdidx-shift]=validRDQindex[rdidx];
-                        validRDQindex[rdidx]=-1;
-                   }
+                   //if(shift>0){
+                   //     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                   //     validRDQindex[rdidx]=-1;
+                   //}
                    continue;
                 }    
                 lk = LBi( k, grid );
@@ -1916,15 +1919,15 @@ double checksum=0;
                 //printf("iam=%d,shift=%d\n",iam,shift);
                 //fflush(stdout);
             }else{
-                if(shift>0){
-                     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
-                     validRDQindex[rdidx]=-1;
-                     //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
-                     //fflush(stdout);
-                }
+                //if(shift>0){
+                //     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                //     validRDQindex[rdidx]=-1;
+                //     //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                //     //fflush(stdout);
+                //}
             }
-            printf("iam=%d,RDis_solved[%d]=%d,BufSize_rd[%d]=%d\n",iam,recvRankNum,RDis_solved[recvRankNum],recvRankNum,BufSize_rd[recvRankNum]); 
-            fflush(stdout);
+            //printf("iam=%d,RDis_solved[%d]=%d,BufSize_rd[%d]=%d\n",iam,recvRankNum,RDis_solved[recvRankNum],recvRankNum,BufSize_rd[recvRankNum]); 
+            //fflush(stdout);
         }// for (rdidx=0;rdidx<Pc;rdidx++)
         }
         nfrecv1 = totalsolveBC + totalsolveRD;

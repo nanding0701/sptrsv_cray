@@ -1445,7 +1445,7 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
         //printf("Bufsuze=%d\n",BufSize[i]);
          if(BufSize[i]>0){
             validBCQindex[j]=i;
-            printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex[j],BufSize[i]);
+            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex[j],BufSize[i]);
             j += 1;
         }    
      }
