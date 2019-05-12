@@ -1649,11 +1649,11 @@ double checksum=0;
             //    printf("iam=%d,count=%d,validBCQindex[%d]=%d\n",iam,debug_count,debug,validBCQindex[debug]);
             //    fflush(stdout);
             //}
-            for (bcidx=0;bcidx<Pr;bcidx++){
+            for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
             //for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
                 //printf("iam=%d,validBCQindex[%d]=%d\n",iam,bcidx,validBCQindex[bcidx]);
                 //fflush(stdout);
-                if (validBCQindex[bcidx]==-1) continue;
+                //if (validBCQindex[bcidx]==-1) continue;
 
                 recvRankNum=validBCQindex[bcidx];  //bcidx; //validBCQindex[bcidx];
                 i=BC_taskbuf_offset[recvRankNum]+BCis_solved[recvRankNum]*maxrecvsz; //BCis_solved[bcidx];	
@@ -1664,12 +1664,12 @@ double checksum=0;
                 //fflush(stdout);
 	            
                 if (k < 0) {
-                  // if(shift>0){
-                  //      validBCQindex[bcidx-shift]=validBCQindex[bcidx];
-                  //      validBCQindex[bcidx]=-1;
-                  //      //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
-                  //      //fflush(stdout);
-                  // }
+                   if(shift>0){
+                        validBCQindex[bcidx-shift]=validBCQindex[bcidx];
+                        validBCQindex[bcidx]=-1;
+                        //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                        //fflush(stdout);
+                   }
                    continue;
                 }  
 
@@ -1724,12 +1724,12 @@ double checksum=0;
                    //printf("iam=%d,shift=%d\n",iam,shift);
                    //fflush(stdout);
                }else{
-                 //  if(shift>0){
-                 //       validBCQindex[bcidx-shift]=validBCQindex[bcidx];
-                 //       validBCQindex[bcidx]=-1;
-                 //       //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
-                 //       //fflush(stdout);
-                 //  }
+                   if(shift>0){
+                        validBCQindex[bcidx-shift]=validBCQindex[bcidx];
+                        validBCQindex[bcidx]=-1;
+                        //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                        //fflush(stdout);
+                   }
                }
                //printf("iam=%d,BCis_solved[%d]=%d,BufSize[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum],recvRankNum,BufSize[recvRankNum]); 
                //fflush(stdout);
@@ -1741,9 +1741,9 @@ double checksum=0;
        
     if (totalsolveRD < nfrecvmod){
         shift=0;
-       for (rdidx=0;rdidx<Pc ;rdidx++){
-       //for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
-                if (validRDQindex[rdidx]==-1) continue;
+       //for (rdidx=0;rdidx<Pc ;rdidx++){
+       for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
+                //if (validRDQindex[rdidx]==-1) continue;
                 //if (rdidx == iam_row) continue;
                 //if (BufSize_rd[rdidx] == 0) continue;
                 //if(RDis_solved[rdidx] == BufSize_rd[rdidx]) continue;
@@ -1755,10 +1755,10 @@ double checksum=0;
                 //printf("rdrd--111--iam=%d, rdidx=%d,k=%d\n",iam,rdidx,k);
                 //fflush(stdout);
 	            if (k < 0) { 
-                   //if(shift>0){
-                   //     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
-                   //     validRDQindex[rdidx]=-1;
-                   //}
+                   if(shift>0){
+                        validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                        validRDQindex[rdidx]=-1;
+                   }
                    continue;
                 }    
                 lk = LBi( k, grid );
@@ -1919,12 +1919,12 @@ double checksum=0;
                 //printf("iam=%d,shift=%d\n",iam,shift);
                 //fflush(stdout);
             }else{
-                //if(shift>0){
-                //     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
-                //     validRDQindex[rdidx]=-1;
-                //     //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
-                //     //fflush(stdout);
-                //}
+                if(shift>0){
+                     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                     validRDQindex[rdidx]=-1;
+                     //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                     //fflush(stdout);
+                }
             }
             //printf("iam=%d,RDis_solved[%d]=%d,BufSize_rd[%d]=%d\n",iam,recvRankNum,RDis_solved[recvRankNum],recvRankNum,BufSize_rd[recvRankNum]); 
             //fflush(stdout);
