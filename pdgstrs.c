@@ -1679,10 +1679,13 @@ int checksum=0;
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
                 for (int tmp=0; tmp<checkend; ++tmp){
 <<<<<<< HEAD
+<<<<<<< HEAD
                     //if(!isnan(recvbuf0[tmp])) {
                         checksum += recvbuf0[tmp];
                     //}
 =======
+=======
+>>>>>>> parent of 272d313... checksumrunok /xtrue most -10, but expensive
                     if(!isnan(recvbuf0[tmp])) {
                         checksum += 1;
                     }

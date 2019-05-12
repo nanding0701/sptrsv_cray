@@ -94,8 +94,12 @@ namespace SuperLU_ASYNCOMM{
                 sendbufval[i] = sendbuf[i];
                 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 checksum += sendbuf[i];
                 //if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
+=======
+                if(!std::isnan(sendbuf[i])) checksum += 1;
+>>>>>>> parent of 272d313... checksumrunok /xtrue most -10, but expensive
 =======
                 if(!std::isnan(sendbuf[i])) checksum += 1;
 >>>>>>> parent of 272d313... checksumrunok /xtrue most -10, but expensive
