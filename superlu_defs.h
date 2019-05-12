@@ -841,8 +841,8 @@ extern void   	BcTree_Destroy(BcTree Tree, char precision);
 extern void 	BcTree_SetTag(BcTree Tree, int tag, char precision);
 extern yes_no_t BcTree_IsRoot(BcTree Tree, char precision);
 #ifdef oneside
-extern void 	BcTree_forwardMessageOneSide(BcTree Tree, void* localBuffer, int msgSize, char precision, int* BClocal_buf_id, int* BCcount, long* BCbase, int* maxrecvsz, int Pc );
-extern void 	RdTree_forwardMessageOneSide(RdTree Tree, void* localBuffer, int msgSize, char precision, int* RDlocal_buf_id, int* RDcount, long* RDbase, int* maxrecvsz, int Pc );
+extern void 	BcTree_forwardMessageOneSide(BcTree Tree, void* localBuffer, int msgSize, char precision, int* BClocal_buf_id, int* BCcount, long* BCbase, int* maxrecvsz, int Pc ,double* sendbufval);
+extern void 	RdTree_forwardMessageOneSide(RdTree Tree, void* localBuffer, int msgSize, char precision, int* RDlocal_buf_id, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double* sendbufval);
 #endif
 extern void 	BcTree_forwardMessageSimple(BcTree Tree, void* localBuffer, int msgSize, char precision);
 extern void 	RdTree_forwardMessageSimple(RdTree Tree, void* localBuffer, int msgSize, char precision);

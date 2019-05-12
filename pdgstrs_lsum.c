@@ -997,7 +997,8 @@ void dlsum_fmod_inv_master
  int* BCcount, 
  long* BCbase, 
  int Pc, 
- int maxrecvsz    
+ int maxrecvsz,
+ double *sendbufval
 )
 {
     double alpha = 1.0, beta = 0.0,malpha=-1.0;
@@ -1218,7 +1219,6 @@ void dlsum_fmod_inv_master
 			}			
 #if ( PROFlevel>=1 )
 			TOC(t2, t1);
-			onesidedgemm[iam] += t2;
 			stat[thread_id]->utime[SOL_GEMM] += t2;
 #endif	
 		}	
@@ -1263,7 +1263,7 @@ void dlsum_fmod_inv_master
 						for (jj=0;jj<iknsupc*nrhs;jj++)
 							lsum[il + jj ] += lsum[il + jj + ii*sizelsum];
 #ifdef oneside
-					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc);
+					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
 #else
                     RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d');
 #endif
@@ -1363,7 +1363,7 @@ void dlsum_fmod_inv_master
                         //}
                         //printf("\n");
                         //fflush(stdout);
-                        BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc);
+                        BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc, sendbufval);
 #else						
                         BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d');
 #endif                    
@@ -1382,7 +1382,7 @@ void dlsum_fmod_inv_master
 						dlsum_fmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, iknsupc, ik,
 								fmod, nlb1, xsup,
 								grid, Llu, stat,sizelsum,sizertemp,1+recurlevel,maxsuper,thread_id,num_thread,
-                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc,maxrecvsz);
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc,maxrecvsz,sendbufval);
 					}		   
 
 					// } /* if frecv[lk] == 0 */

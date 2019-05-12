@@ -308,7 +308,7 @@ extern void dlsum_fmod_inv_master(double *, double *, double *, double *,
 		       int, int, int_t , int_t *, int_t, 
 		       int_t *, gridinfo_t *, LocalLU_t *, 
 		       SuperLUStat_t **, int_t, int_t, int_t, int_t, int, int,
-		       int*, int*, long*, int*, int*, long*, int,int);
+		       int*, int*, long*, int*, int*, long*, int,int,double*);
 extern void dlsum_bmod_inv_master(double *, double *, double *, double *,
                        int, int_t, int_t *, int_t *, int_t *, Ucb_indptr_t **,
                        int_t **, int_t *, gridinfo_t *, LocalLU_t *,
