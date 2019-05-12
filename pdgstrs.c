@@ -1315,12 +1315,6 @@ if(procs==1){
         RDis_solved = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
         memset(BCis_solved, 0, Pr * sizeof(int));
         memset(RDis_solved, 0, Pc * sizeof(int));
-        double *BC_subtotal, *RD_subtotal;
-        BC_subtotal = (double*)SUPERLU_MALLOC( Pr * sizeof(double));   // this needs to be optimized for 1D row mapping
-        RD_subtotal = (double*)SUPERLU_MALLOC( Pc * sizeof(double));   // this needs to be optimized for 1D row mapping
-        memset(BC_subtotal, 0, Pr * sizeof(double));
-        memset(RD_subtotal, 0, Pc * sizeof(double));
-        double BC_subtotal_all=0, RD_subtotal_all=0;
         int debug_count=0;
         onesidecomm_rd=0.0;    
         foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
@@ -1638,7 +1632,8 @@ if(Llu->inv == 1){
 			   ----------------------------------------------------------- */
 #ifdef oneside
 int shift=0;
-
+int recvRankNum=-1;
+double checksum=0;
     while( nfrecv1 < nfrecvx+nfrecvmod ){
         thread_id = 0;
         //printf("sss--000--iam=%d,%lf,%d\n",iam,nfrecv1,nfrecvx+nfrecvmod);
@@ -1649,46 +1644,54 @@ int shift=0;
             //fflush(stdout);
                 //TIC(t1);
 	        shift=0;
+            //debug_count++;
             //for (int debug=0;debug<Pr; debug++){
-            //    printf("iam=%d,validBCQindex[%d]=%d\n",iam,debug,validBCQindex[debug]);
+            //    printf("iam=%d,count=%d,validBCQindex[%d]=%d\n",iam,debug_count,debug,validBCQindex[debug]);
             //    fflush(stdout);
             //}
-            //for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
             for (bcidx=0;bcidx<Pr;bcidx++){
-                
-                if (bcidx == iam_col) continue;
-                if (BufSize[bcidx] == 0) continue;
-		        if (BCis_solved[bcidx] >= BufSize[bcidx]) continue;
-                int recvRankNum=bcidx;  //bcidx; //validBCQindex[bcidx];
+            //for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
+                printf("iam=%d,validBCQindex[%d]=%d\n",iam,bcidx,validBCQindex[bcidx]);
+                if (validBCQindex[bcidx]=-1) continue;
+
+                recvRankNum=validBCQindex[bcidx];  //bcidx; //validBCQindex[bcidx];
                 i=BC_taskbuf_offset[recvRankNum]+BCis_solved[recvRankNum]*maxrecvsz; //BCis_solved[bcidx];	
-                //i=BC_taskbuf_offset[recvRankNum]+BCis_solved[recvRankNum]*maxrecvsz; //BCis_solved[bcidx];	
-                //printf("bcbc--111--iam=%d, bcidx=%d\n",iam,bcidx);
-                //fflush(stdout);
-                //printf("bcbc--222--iam=%d, check buffer %d, offset=%ld\n",iam,bcidx,BC_taskbuf_offset);
-                //fflush(stdout);
                 recvbuf0 = &BC_taskq[i];
                 k = *recvbuf0;
-	            if (k < 0) continue; 
                 
-                //t= SuperLU_timer_();
+                printf("bcbc--111--iam=%d, bcidx=%d,k=%d\n",iam,bcidx,k);
+                fflush(stdout);
+	            
+                if (k < 0) {
+                  // if(shift>0){
+                  //      validBCQindex[bcidx-shift]=validBCQindex[bcidx];
+                  //      validBCQindex[bcidx]=-1;
+                  //      //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                  //      //fflush(stdout);
+                  // }
+                   continue;
+                }  
+
                 lk = LBj( k, grid );    /* local block number */
                 
+                //checksum=0;
+                //checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
+                //for (int tmp=0; tmp<checkend; ++tmp){
+                //    if(!isnan(recvbuf0[tmp])) {
+                //        checksum += recvbuf0[tmp];
+                //    }
+                //}
+                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
+                //fflush(stdout);
+                //if(abs(checksum-recvbuf0[checkend])!=0) continue;
+                //t= SuperLU_timer_();
+                
                 totalsolveBC += 1; //BC_subtotal[bcidx] - BCis_solved[bcidx];
-               
-                //printf("3.5----iam=%d,solved=%d,total=%d,thistime=%lf,Timestamp: %f\n",iam,debug_count,nfrecvx,BC_subtotal[bcidx]-BCis_solved[bcidx],SuperLU_timer_());
-                //fflush(stdout);
-                //printf("bbb--000--iam=%d,%d,%d\n",iam,debug_count,nfrecvx);
-                //fflush(stdout);
-                //printf("3.6----iam=%d,i=%d,BufSize[%d]=%d,diff=%lf\n",iam,i,bcidx,BufSize[bcidx],abs(recvbuf0[checkend]-checkflag));
-                //fflush(stdout);
 			    BCis_solved[recvRankNum]++;
-        //usleep(0); //err-10
-			            //recvbuf0 = &BC_taskq[BC_taskbuf_offset+i*maxrecvsz];
-                        //k = *recvbuf0;
-                        //lk = LBj( k, grid );    /* local block number */
                         
 			
                 if(BcTree_getDestCount(LBtree_ptr[lk],'d')>0){
+	                //BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,checkend,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 	                BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 			    }
 	
@@ -1713,134 +1716,73 @@ int shift=0;
                                       &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz);	
 		
 			    } /* if lsub */
-                //TOC(t2, t1);
-                //onesidecomm_rd += t2;
-		//} // for i = BCis_solved[bcidx]+1 
-        //onesidecomm_rd += SuperLU_timer_() - t;
-               //printf("iam=%d,BCis_solved[%d]=%d,BufSize[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum],recvRankNum,BufSize[recvRankNum]);
-               //fflush(stdout);
+              
                if (BCis_solved[recvRankNum] == BufSize[recvRankNum]) {
                    validBCQindex[bcidx]=-1; 
                    shift += 1;
                    //printf("iam=%d,shift=%d\n",iam,shift);
                    //fflush(stdout);
                }else{
-                   if(shift>0){
-                        validBCQindex[bcidx-shift]=validBCQindex[bcidx];
-                        validBCQindex[bcidx]=-1;
-                        //printf("iam=%d,shift=%d\n",iam,shift);
-                        //fflush(stdout);
-                   }
+                 //  if(shift>0){
+                 //       validBCQindex[bcidx-shift]=validBCQindex[bcidx];
+                 //       validBCQindex[bcidx]=-1;
+                 //       //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                 //       //fflush(stdout);
+                 //  }
                }
+               printf("iam=%d,BCis_solved[%d]=%d,BufSize[%d]=%d\n",iam,recvRankNum,BCis_solved[recvRankNum],recvRankNum,BufSize[recvRankNum]); 
+               fflush(stdout);
             } // for bcidx 
 
                 //TOC(t2, t1);
                 //onesidecomm_rd += t2;
         } 
        
-       if (totalsolveRD < nfrecvmod){
-           // printf("rdrd--000--iam=%d,%lf,%d\n",iam,nfrecv1,nfrecvmod);
-           // fflush(stdout);
-                //TIC(t1); 
-       for (rdidx=0;rdidx<Pc;rdidx++){
-                if (rdidx == iam_row) continue;
-                if (BufSize_rd[rdidx] == 0) continue;
-                if(RDis_solved[rdidx] == BufSize_rd[rdidx]) continue;
+    if (totalsolveRD < nfrecvmod){
+        shift=0;
+       for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
+                //if (rdidx == iam_row) continue;
+                //if (BufSize_rd[rdidx] == 0) continue;
+                //if(RDis_solved[rdidx] == BufSize_rd[rdidx]) continue;
                 
-                ird=RD_taskbuf_offset[rdidx]+RDis_solved[rdidx]*maxrecvsz;
+                recvRankNum=validRDQindex[rdidx];  //bcidx; //validBCQindex[bcidx];
+                ird=RD_taskbuf_offset[recvRankNum]+RDis_solved[recvRankNum]*maxrecvsz;
                 recvbuf0 = &RD_taskq[ird];
                 k = *recvbuf0;
-                //printf("sss--000--iam=%d,%lf,%d,%d\n",iam,nfrecv1,nfrecvmod,k);
+                printf("rdrd--111--iam=%d, rdidx=%d,k=%d\n",iam,rdidx,k);
+                fflush(stdout);
+	            if (k < 0) { 
+                   if(shift>0){
+                        validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                        validRDQindex[rdidx]=-1;
+                   }
+                   continue;
+                }    
+                lk = LBi( k, grid );
+                
+                //checksum=0;
+                //checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
+                //for (int tmp=0; tmp<checkend; tmp++){
+                //    if(!isnan(recvbuf0[tmp])) {
+                //        checksum += recvbuf0[tmp];
+                //    }
+                //}
+                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
                 //fflush(stdout);
-	            if (k < 0) continue; 
-                //printf("rrrr--222--iam=%d\n",iam);
-                //fflush(stdout);
+                //if(abs(checksum-recvbuf0[checkend])!=0) continue;
               
 	            //t = SuperLU_timer_();
-                lk = LBi( k, grid );
-                //checkend = RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
-                //checkflag=0;
-                //for(int ti=2;ti<checkend;++ti){
-                //    //if(isnan(recvbuf0[ti])) {
-                //        //printf("rd,iam=%d,isnan,checksum now=%lf,%lf,%lf\n",iam,recvbuf0[0],recvbuf0[ti],recvbuf0[checkend]);
-                //        //fflush(stdout);
-                //    //    continue;
-                //    //}
-                //    checkflag += recvbuf0[ti];
-                //    //printf("rd,iam=%d,b=%lf,checksum now=%lf,%lf,%lf\n",iam,recvbuf0[0],checkflag,recvbuf0[ti],recvbuf0[checkend]);
-                //    //fflush(stdout);
-                //}
-                ////printf("iam=%d,here--b=%lf,checksum now=%lf,%lf,%lf\n",iam,recvbuf0[0],checkflag,recvbuf0[checkend],checkflag-recvbuf0[checkend]);
-                ////fflush(stdout);
-	            //if(abs(checkflag-recvbuf0[checkend])!=0) {
-                //    //printf("iam=%d,11here--b=%lf,checksum now=%lf,%lf,%lf\n",iam,recvbuf0[0],checkflag,recvbuf0[checkend],checkflag-recvbuf0[checkend]);
-                //    //fflush(stdout);
-                //    continue; 
-                //}
-                //MPI_Barrier(MPI_COMM_WORLD);
-                //printf("21----iam=%d,k=%d\n",iam,k);
-                //fflush(stdout);
-                //while((k >=0) && (abs(recvbuf0[checkend]-checkflag)==0) && (ird<BufSize_rd[rdidx])){
-                //        ird += 1;
-                //        recvbuf0 = &RD_taskq[RD_taskbuf_offset+ird*maxrecvsz];
-                //        k = *recvbuf0;
-                //        //printf("22----iam=%d,k=%d\n",iam,k);
-                //        //fflush(stdout);
-	            //        if (k < 0) break; 
-                //         
-                //        lk = LBi( k, grid );
-                //        
-                //        checkflag = 0;
-                //        //printf("23----iam=%d,k=%d,lk=%d\n",iam,k,lk);
-                //        //fflush(stdout);
-                //        checkend = RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
-                //        for(int ti=0;ti<checkend;ti++){
-                //            if(isnan(recvbuf0[ti])) {
-                //                //printf("rd,iam=%d,isnan,checksum now=%lf,%lf,%lf\n",iam,recvbuf0[0],recvbuf0[ti],recvbuf0[checkend]);
-                //                //fflush(stdout);
-                //                continue;
-                //            }
-                //            checkflag += recvbuf0[ti];
-                //            //printf("rd,iam=%d,b=%lf,checksum now=%lf,%lf,%lf\n",iam,recvbuf0[0],checkflag,recvbuf0[ti],recvbuf0[checkend]);
-                //            //fflush(stdout);
-                //        }
-                //        //printf("24----iam=%d,checkval=%lf\n",iam,recvbuf0[checkend-1]);
-                //        //fflush(stdout);
-                //}         
-                RD_subtotal[rdidx]=ird;
                 totalsolveRD += 1; //RD_subtotal[rdidx]-RDis_solved[rdidx];
                 
-                //if(RDis_solved[rdidx]>=RD_subtotal[rdidx]) continue;
-               
-                //printf("3.6----iam=%d,solved=%d,total=%d,thistime=%lf,Timestamp: %d\n",maxrecvsz,iam,debug_count,nfrecvx,BC_subtotal[bcidx]-BCis_solved[bcidx],(int)time(NULL));
-                //printf("25----iam=%d,solved=%d,total=%d,thistime=%lf,Timestamp: %f\n",iam,debug_count,nfrecvmod,RD_subtotal[rdidx]-RDis_solved[rdidx],SuperLU_timer_());
-                //fflush(stdout);
-                //printf("25----iam=%d,solved=%d,total=%d,thistime=%lf\n",iam,debug_count,nfrecvmod,RD_subtotal[rdidx]-RDis_solved[rdidx]);
-                //fflush(stdout);
-
-                //for(ird=RDis_solved[rdidx]; ird<RD_subtotal[rdidx]; ird++){
-                       RDis_solved[rdidx] += 1 ;	
-                       //recvbuf0 = &RD_taskq[RD_taskbuf_offset+ird*maxrecvsz];
-                       //k = *recvbuf0;
-                       //printf("4----iam=%d,k=%d\n",iam,k);
-                       //fflush(stdout);
-                       
-                       //lk = LBi( k, grid ); /* Local block number, row-wise. */
-                       //printf("5----iam=%d,k=%d,lk=%d,val[0]=%d,",iam,k,lk,recvbuf0[0]);
-                       //for(i=1;i<RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;i++){
-                       //         printf("val[%d]=%lf,",i,recvbuf0[i]);
-                       //         fflush(stdout);
-                       //         if(recvbuf0[i] == -1) printf("ORZORZORZ\n");
-                       //}       
-                       //printf("\n"); 
-                       //fflush(stdout);
-	                   knsupc = SuperSize( k );
-                       tempv = &recvbuf0[LSUM_H];
-                       il = LSUM_BLK( lk );		  
-                       RHS_ITERATE(j) {
+                RDis_solved[recvRankNum] += 1 ;	
+	            
+                knsupc = SuperSize( k );
+                tempv = &recvbuf0[LSUM_H];
+                il = LSUM_BLK( lk );		  
+                RHS_ITERATE(j) {
                                for (i = 0; i < knsupc; ++i)
                                         lsum[i + il + j*knsupc + thread_id*sizelsum] += tempv[i + j*knsupc];
-                       }			
+                }			
 
                        fmod_tmp=--fmod[lk*aln_i];
                 
@@ -1968,12 +1910,21 @@ int shift=0;
                     //fflush(stdout);
                     } // end if RD xxxx YES
 			} // end of fmod_tmp=0 
-            //printf("16----iam=%d,k=%d\n",iam,k);
-            //fflush(stdout);
-//		} // for(ird=RDis_solved[rdidx]; ird<  RD_subtotal[rdidx]; ird++)  
-                //TOC(t2, t1);
-                //onesidecomm_rd += t2;
-        //onesidecomm_rd += SuperLU_timer_() - t;
+            if (RDis_solved[recvRankNum] == BufSize_rd[recvRankNum]) {
+                validRDQindex[rdidx]=-1; 
+                shift += 1;
+                //printf("iam=%d,shift=%d\n",iam,shift);
+                //fflush(stdout);
+            }else{
+                if(shift>0){
+                     validRDQindex[rdidx-shift]=validRDQindex[rdidx];
+                     validRDQindex[rdidx]=-1;
+                     //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
+                     //fflush(stdout);
+                }
+            }
+            printf("iam=%d,RDis_solved[%d]=%d,BufSize_rd[%d]=%d\n",iam,recvRankNum,RDis_solved[recvRankNum],recvRankNum,BufSize_rd[recvRankNum]); 
+            fflush(stdout);
         }// for (rdidx=0;rdidx<Pc;rdidx++)
         }
         nfrecv1 = totalsolveBC + totalsolveRD;
