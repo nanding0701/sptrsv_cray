@@ -1116,84 +1116,87 @@ if(procs==1){
 #ifdef oneside
 	int iam_col=MYROW( iam, grid );    
 	int iam_row=MYCOL( iam, grid );    
-    	int *BCcount, *RDcount;
-    	BCcount = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
-    	RDcount = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
-    	memset(BCcount, 0, ( Pr * sizeof(int)));
-    	memset(RDcount, 0, ( Pc * sizeof(int)));
+    int *BCcount, *RDcount;
+    BCcount = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
+    RDcount = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
+    memset(BCcount, 0, ( Pr * sizeof(int)));
+    memset(RDcount, 0, ( Pc * sizeof(int)));
            
-        long *BCbase, *RDbase; //BCsendoffset, RDsendoffset;
-    	BCbase = (long*)SUPERLU_MALLOC( Pr * sizeof(long));   // this needs to be optimized for 1D row mapping
-    	RDbase = (long*)SUPERLU_MALLOC( Pc * sizeof(long));   // this needs to be optimized for 1D row mapping
-    	memset(BCbase, 0, ( Pr * sizeof(long)));
-    	memset(RDbase, 0, ( Pc * sizeof(long)));
-        if( Pr > 1){
-                for (i=0;i<Pr;i++){
-                        BCbase[i] = recv_size_all[i]*maxrecvsz;
-                }
-        }
-        if(Pc > 1){
-                for (i=0;i<Pc;i++){
-                        RDbase[i] = recv_size_all[Pr+i]*maxrecvsz;
-                }
-        }        
-	
-        double* BC_taskq;
-        double* RD_taskq;
-
-        int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
-        int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
-
-	    BC_buffer_size=(nfrecvx+1)*maxrecvsz;
-	    RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
-	
-        BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-        RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-	
-	    nfrecvx_buf=0;
+     long *BCbase, *RDbase; //BCsendoffset, RDsendoffset;
+     BCbase = (long*)SUPERLU_MALLOC( Pr * sizeof(long));   // this needs to be optimized for 1D row mapping
+     RDbase = (long*)SUPERLU_MALLOC( Pc * sizeof(long));   // this needs to be optimized for 1D row mapping
+     memset(BCbase, 0, ( Pr * sizeof(long)));
+     memset(RDbase, 0, ( Pc * sizeof(long)));
+    //printf("iam %d, 2------------------\n",iam);
+	//fflush(stdout);
+     if( Pr > 1){
+        for (i=0;i<Pr;i++) BCbase[i] = recv_size_all[i]*maxrecvsz;
+     }
         
-        double initval=(-1.0);
-        for(i=0; i<BC_buffer_size; i++){
-                BC_taskq[i] = initval;
-        }
-        for(i=0; i<RD_buffer_size; i++){
-                RD_taskq[i] = initval;
-        }
+    if(Pc > 1){
+        for (i=0;i<Pc;i++) RDbase[i] = recv_size_all[Pr+i]*maxrecvsz;
+    }        
+	
+    double* BC_taskq;
+    double* RD_taskq;
 
-        double nfrecv1=0;
-        int checkend=0;
-        double checkflag=0;
-        int ird=0, tidx=0, bcidx=0, rdidx=0, tmp_id=0;
-        int *BCis_solved, *RDis_solved;
-        int totalsolveBC=0, totalsolveRD=0;
-        
-        long* BC_taskbuf_offset;
-        long *RD_taskbuf_offset;
+    int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
+    int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
 
-        BC_taskbuf_offset = (long*)SUPERLU_MALLOC( Pr * sizeof(long));   // this needs to be optimized for 1D row mapping
-        RD_taskbuf_offset = (long*)SUPERLU_MALLOC( Pc * sizeof(long));   // this needs to be optimized for 1D row mapping
-        memset(BC_taskbuf_offset, 0, Pr * sizeof(long));
-        memset(RD_taskbuf_offset, 0, Pc * sizeof(long));
+	BC_buffer_size=(nfrecvx+1)*maxrecvsz;
+	RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
+	
+    BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+	
+	nfrecvx_buf=0;
+    
+    double initval=(-1.0);
+    for(i=0; i<BC_buffer_size; i++) BC_taskq[i] = initval;
+    for(i=0; i<RD_buffer_size; i++) RD_taskq[i] = initval;
+
+    double nfrecv1=0;
+    int checkend=0;
+    double checkflag=0;
+    int ird=0, tidx=0, bcidx=0, rdidx=0, tmp_id=0;
+    int *BCis_solved, *RDis_solved;
+    int totalsolveBC=0, totalsolveRD=0;
+    int shift=0;
+    int recvRankNum=-1;
+    uint16_t crc_16_val;
+    uint32_t crc_32_val;
+    uint8_t crc_8_val;
         
-        for (bcidx=0;bcidx<Pr;bcidx++){
-            for(int tmp=0;tmp<bcidx;tmp++){
-                BC_taskbuf_offset[bcidx] += BufSize[tmp]*maxrecvsz;
-            }       
-        }
-        for (rdidx=0;rdidx<Pc;rdidx++){
-                 for(int tmp=0;tmp<rdidx;tmp++){ 
-                         RD_taskbuf_offset[rdidx] += BufSize_rd[tmp]*maxrecvsz; 
-                 }        
-        }
+    long* BC_taskbuf_offset;
+    long *RD_taskbuf_offset;
+
+    BC_taskbuf_offset = (long*)SUPERLU_MALLOC( Pr * sizeof(long));   // this needs to be optimized for 1D row mapping
+    RD_taskbuf_offset = (long*)SUPERLU_MALLOC( Pc * sizeof(long));   // this needs to be optimized for 1D row mapping
+    memset(BC_taskbuf_offset, 0, Pr * sizeof(long));
+    memset(RD_taskbuf_offset, 0, Pc * sizeof(long));
+        
+    for (bcidx=0;bcidx<Pr;bcidx++){
+        for(int tmp=0;tmp<bcidx;tmp++){
+            BC_taskbuf_offset[bcidx] += BufSize[tmp]*maxrecvsz;
+        }       
+    }
+    for (rdidx=0;rdidx<Pc;rdidx++){
+             for(int tmp=0;tmp<rdidx;tmp++){ 
+                     RD_taskbuf_offset[rdidx] += BufSize_rd[tmp]*maxrecvsz; 
+             }        
+    }
        
-        BCis_solved = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
-        RDis_solved = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
-        memset(BCis_solved, 0, Pr * sizeof(int));
-        memset(RDis_solved, 0, Pc * sizeof(int));
-        foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
-	    foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
-        foMPI_Win_lock_all(0, bc_winl);
-        foMPI_Win_lock_all(0, rd_winl);
+    BCis_solved = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
+    RDis_solved = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
+    memset(BCis_solved, 0, Pr * sizeof(int));
+    memset(RDis_solved, 0, Pc * sizeof(int));
+    
+    foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
+	foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
+    foMPI_Win_lock_all(0, bc_winl);
+    foMPI_Win_lock_all(0, rd_winl);
+    //printf("End init oneside iam=%d\n",iam);
+    //fflush(stdout);
 #else
 	
         if ( !(recvbuf_BC_fwd = (double*)SUPERLU_MALLOC(maxrecvsz*(nfrecvx+1) * sizeof(double))) )  // this needs to be optimized for 1D row 		ABORT("Malloc fails for recvbuf_BC_fwd[].");	
@@ -1479,19 +1482,10 @@ if(Llu->inv == 1){
 			   Compute the internal nodes asynchronously by all processes.
 			   ----------------------------------------------------------- */
 #ifdef oneside
-int shift=0;
-int recvRankNum=-1;
-uint16_t crc_16_val;
-uint32_t crc_32_val;
-uint8_t crc_8_val;
     while( nfrecv1 < nfrecvx+nfrecvmod ){
         thread_id = 0;
         if (totalsolveBC < nfrecvx){
 	        shift=0;
-            //for (int debug=0;debug<Pr; debug++){
-            //    printf("iam=%d,count=%d,validBCQindex[%d]=%d\n",iam,debug_count,debug,validBCQindex[debug]);
-            //    fflush(stdout);
-            //}
             for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
 
                 recvRankNum=validBCQindex[bcidx];  //bcidx; //validBCQindex[bcidx];
@@ -1499,15 +1493,11 @@ uint8_t crc_8_val;
                 recvbuf0 = &BC_taskq[i];
                 k = *recvbuf0;
                 
-                //printf("bcbc--111--iam=%d, bcidx=%d,k=%d\n",iam,bcidx,k);
-                //fflush(stdout);
 	            
                 if (k < 0) {
                    if(shift>0){
                         validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                         validBCQindex[bcidx]=-1;
-                        //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
-                        //fflush(stdout);
                    }
                    continue;
                 }  
@@ -1518,43 +1508,22 @@ uint8_t crc_8_val;
 	            //crc_16_val = 0x0000;
 	            //crc_32_val = 0xffffffffL;
                 crc_16_val=crc_16((unsigned char*)recvbuf0,sizeof(double)*checkend);
-                //crc_32_val=crc_32((unsigned char*)recvbuf0,sizeof(double)*checkend);
-                //for (int tmp=0; tmp<checkend; ++tmp){
-                //    //crc_32_val=update_crc_32(crc_32_val, recvbuf0[tmp]); 
-                //    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
-                //   // if(!isnan(recvbuf0[tmp])) {
-                //   //     checksum += recvbuf0[tmp];
-                //   //}
-                //}
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
-                //fflush(stdout);
                 
                 if(crc_16_val!=(uint16_t)recvbuf0[checkend]) {
-                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
-                   // printf("bcbc--333--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
-                   // fflush(stdout);
                    if(shift>0){
                         validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                         validBCQindex[bcidx]=-1;
-                        //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
-                        //fflush(stdout);
                    }
                    continue;
                 }
-                    //t= SuperLU_timer_();
                 
                 totalsolveBC += 1; //BC_subtotal[bcidx] - BCis_solved[bcidx];
 			    BCis_solved[recvRankNum]++;
                         
-                //printf("bcbc--3--iam=%d, BCis_solved[%d]=%d/%d\n",iam,recvRankNum,BCis_solved[recvRankNum],BufSize[recvRankNum]);
-                //fflush(stdout);
 			
                 if(BcTree_getDestCount(LBtree_ptr[lk],'d')>0){
-	                //BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,checkend,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 	                BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc,sendbufval);
 			    }
-                //printf("bcbc--444--iam=%d\n",iam);
-                //fflush(stdout);
 	
 		        lsub = Lrowind_bc_ptr[lk];
 	
@@ -1601,12 +1570,7 @@ uint8_t crc_8_val;
        
     if (totalsolveRD < nfrecvmod){
         shift=0;
-       //for (rdidx=0;rdidx<Pc ;rdidx++){
        for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
-                //if (validRDQindex[rdidx]==-1) continue;
-                //if (rdidx == iam_row) continue;
-                //if (BufSize_rd[rdidx] == 0) continue;
-                //if(RDis_solved[rdidx] == BufSize_rd[rdidx]) continue;
                 
                 recvRankNum=validRDQindex[rdidx];  //bcidx; //validBCQindex[bcidx];
                 ird=RD_taskbuf_offset[recvRankNum]+RDis_solved[recvRankNum]*maxrecvsz;
@@ -1625,18 +1589,7 @@ uint8_t crc_8_val;
                 
                 checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
                 crc_16_val=crc_16((unsigned char*)recvbuf0,sizeof(double)*checkend);
-	            //crc_32_val = 0xffffffffL;
-                //for (int tmp=0; tmp<checkend; ++tmp){
-                //    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
-                //    //if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
-                //}
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
-                //fflush(stdout);
-                //if(abs(checksum-recvbuf0[checkend])<0.00000001) {
-                //if((uint16_t)crc_16_val!=(uint16_t)recvbuf0[checkend]) {
-                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
-                //if((int)checksum!=(int)recvbuf0[checkend]) {
-                //if(abs(checksum-recvbuf0[checkend])!=0) {
+                
                 if(crc_16_val!=(uint16_t)recvbuf0[checkend]) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
@@ -1644,7 +1597,6 @@ uint8_t crc_8_val;
                    }
                    continue;
                 }
-	            //t = SuperLU_timer_();
                 totalsolveRD += 1; //RD_subtotal[rdidx]-RDis_solved[rdidx];
                 
                 RDis_solved[recvRankNum] += 1 ;	
@@ -1661,15 +1613,9 @@ uint8_t crc_8_val;
                 
 	                   thread_id = 0;
 	                   rtemp_loc = &rtemp[sizertemp* thread_id];
-                       //printf("5----iam=%d,k=%d\n",iam,k);
-                       //fflush(stdout);
 	                   if ( fmod_tmp==0 ) {	  
-                            //printf("6----iam=%d,k=%d\n",iam,k);
-                            //fflush(stdout);
 		                    if(RdTree_IsRoot(LRtree_ptr[lk],'d')==YES){
                                 knsupc = SuperSize( k );
-                                //printf("7----iam=%d,k=%d\n",iam,k);
-                                //fflush(stdout);
                                 for (ii=1;ii<num_thread;ii++)
 #ifdef _OPENMP
 	#pragma omp simd
@@ -2098,20 +2044,10 @@ uint8_t crc_8_val;
 		SUPERLU_FREE(leaf_send);
 		SUPERLU_FREE(leafsups);
 #ifdef oneside
-                foMPI_Win_free(&bc_winl); 
-                foMPI_Win_free(&rd_winl); 
-                //exit(0);
-                SUPERLU_FREE(BC_taskq);
-                SUPERLU_FREE(RD_taskq);
-	        //memset(recv_size_all, 0, (Pr+Pc) * sizeof(int));
-        	//memset(BCcount, 0, ( Pr * sizeof(int)));
-        	//memset(RDcount, 0, ( Pc * sizeof(int)));
-        	//memset(BCbase, 0, ( Pr * sizeof(long)));
-        	//memset(RDbase, 0, ( Pc * sizeof(long)));
-                //memset(BCis_solved, 0, Pr * sizeof(double));
-                //memset(RDis_solved, 0, Pc * sizeof(double));
-                //memset(BC_subtotal, 0, Pr * sizeof(double));
-                //memset(RD_subtotal, 0, Pc * sizeof(double));
+        foMPI_Win_free(&bc_winl); 
+        foMPI_Win_free(&rd_winl); 
+        SUPERLU_FREE(BC_taskq);
+        SUPERLU_FREE(RD_taskq);
 #else
 		SUPERLU_FREE(recvbuf_BC_fwd);
 
