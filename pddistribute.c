@@ -324,13 +324,14 @@ MPI_Comm row_comm;
 MPI_Comm col_comm;
 int* BufSize;
 int* BufSize_rd;
-int* BufSize_u;
-int* BufSize_urd;
-int *recv_size_all;
 int *validBCQindex;
 int *validRDQindex;
+int *recv_size_all;
+int* BufSize_u;
+int* BufSize_urd;
 int *validBCQindex_u;
 int *validRDQindex_u;
+int *recv_size_all_u;
 #endif        
 float
 pddistribute(fact_t fact, int_t n, SuperMatrix *A,
@@ -517,10 +518,8 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
 	
     if ( !(validBCQindex = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
     	ABORT("Malloc fails for  validBCQindex[]");	
-    
     if ( !(validRDQindex = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
     	ABORT("Malloc fails for validRDQindex[]");	
-    
     
     if ( !(BufSize_u = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
     	ABORT("Malloc fails for BufSize_u[]");	
@@ -563,6 +562,7 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
     MPI_Comm_split(MPI_COMM_WORLD, color, iam, &row_comm);
     int iam_row;
     MPI_Comm_rank(row_comm, &iam_row);
+    //int *recv_size_all;// Pc + Pr
     if ( !(recv_size_all = (int*)SUPERLU_MALLOC( ( Pr+Pc) * sizeof(int))) )  
 	    ABORT("Malloc fails for recv_size_all[].");	
 	memset(recv_size_all, 0, (Pr+Pc) * sizeof(int));
@@ -1474,6 +1474,7 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
         }    
      }
 #endif
+
 #if ( PROFlevel>=1 )
 t = SuperLU_timer_() - t;
 if ( !iam) printf(".. Construct Bcast tree for L: %.2f\t\n", t);
@@ -1662,7 +1663,7 @@ if ( !iam) printf(".. Construct Bcast tree for L: %.2f\t\n", t);
 		// if(nzrows[i])SUPERLU_FREE(nzrows[i]);
 	// }
 	// SUPERLU_FREE(nzrows);
-#ifdef oneside    
+#ifdef oneside     
     req_count = 0;
     BufSize_rd[iam_row]=0;
     for (i=0; i<Pc;i++){
@@ -1831,27 +1832,26 @@ if ( !iam) printf(".. Construct Reduce tree for L: %.2f\t\n", t);
 	SUPERLU_FREE(ActiveFlagAll);
 	SUPERLU_FREE(ranks);				
 	SUPERLU_FREE(SeedSTD_BC);				
-#ifdef oneside		
+		
+#ifdef oneside	
     req_count = 0;
 	memset(oneside_buf_offset, 0, (Pr+Pc) * sizeof(int));
-	memset(recv_size_all, 0, (Pr+Pc) * sizeof(int));
     BufSize_u[iam_col]=0;
     for (i=0; i<Pr;i++){
              for(j=0;j<i;j++){
                      oneside_buf_offset[i] += BufSize_u[j];
              }
              if (iam_col!=i){ 
-                     MPI_Irecv(&recv_size_all[i], 1, MPI_INT, i, 0, col_comm, &col_req[req_count]);
+                     MPI_Irecv(&recv_size_all_u[i], 1, MPI_INT, i, 0, col_comm, &col_req[req_count]);
      	             MPI_Isend(&oneside_buf_offset[i],1, MPI_INT, i, 0, col_comm, &col_req[req_count+1]);
                      req_count += 2;
              }
      }        
      MPI_Waitall(2*(Pr-1), col_req, col_status);
-     recv_size_all[iam_col]=0;
+     recv_size_all_u[iam_col]=0;
 
      j=0; 
      for(i=0; i<Pr; i++){
-        //printf("Bufsuze=%d\n",BufSize[i]);
          if(BufSize_u[i]>0){
             validBCQindex_u[j]=i;
             //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex[j],BufSize[i]);
@@ -2035,7 +2035,7 @@ if ( !iam) printf(".. Construct Bcast tree for U: %.2f\t\n", t);
 					URtree_ptr[lib] = RdTree_Create_oneside(grid->comm, ranks, rank_cnt, msgsize,SeedSTD_RD[lib],'d',BufSize_urd, Pc);  	
 #else					
                     URtree_ptr[lib] = RdTree_Create(grid->comm, ranks, rank_cnt, msgsize,SeedSTD_RD[lib],'d');  	
-#endif
+#endif					
                     RdTree_SetTag(URtree_ptr[lib], RD_U,'d');
 					// }
 
@@ -2067,7 +2067,7 @@ if ( !iam) printf(".. Construct Bcast tree for U: %.2f\t\n", t);
 		// if(nzrows[i])SUPERLU_FREE(nzrows[i]);
 	// }
 	// SUPERLU_FREE(nzrows);				
-#ifdef oneside
+#ifdef oneside     
     req_count = 0;
     BufSize_urd[iam_row]=0;
     for (i=0; i<Pc;i++){
@@ -2075,14 +2075,14 @@ if ( !iam) printf(".. Construct Bcast tree for U: %.2f\t\n", t);
                     oneside_buf_offset[i+Pr] += BufSize_urd[j];
             }
             if (iam_row!=i){ 
-                    MPI_Irecv(&recv_size_all[Pr+i],  1, MPI_INT, i, 0, row_comm, &row_req[req_count]);
+                    MPI_Irecv(&recv_size_all_u[Pr+i],  1, MPI_INT, i, 0, row_comm, &row_req[req_count]);
     	            MPI_Isend(&oneside_buf_offset[i+Pr],1, MPI_INT, i, 0, row_comm, &row_req[req_count+1]);
                     req_count += 2;
                     //MPI_Sendrecv(&nfrecvmod,1, MPI_INT, i, 0,&recv_size_all[Pr+i], 1, MPI_INT, i, 0, row_comm,&status); 
             }
     }        
     MPI_Waitall(2*(Pc-1), row_req, row_status);
-    recv_size_all[Pr+iam_row]=0; 
+    recv_size_all_u[Pr+iam_row]=0; 
     j=0; 
     for(i=0; i<Pc; i++){
        if(BufSize_urd[i]!=0){
