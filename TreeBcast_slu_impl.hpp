@@ -200,15 +200,15 @@ namespace SuperLU_ASYNCOMM {
                 //t1 = SuperLU_timer_();
 		        new_iProc = iProc/Pc;
                 BCsendoffset = BCbase[new_iProc] + BCcount[new_iProc]*(*maxrecvsz);
- 		        //printf("I col_id %d, send to world rank %d/%d, BCcount[%d]=%d, BCbase[%d]=%ld,BCsendoffset=%ld, maxrecvsz=%d\n",*iam_col, iProc, new_iProc, new_iProc,BCcount[new_iProc], new_iProc,BCbase[new_iProc], BCsendoffset, *maxrecvsz);
-		        //fflush(stdout);
+ 		        printf("I col_id %d, send to world rank %d/%d, BCcount[%d]=%d, BCbase[%d]=%ld,BCsendoffset=%ld, maxrecvsz=%d\n",*iam_col, iProc, new_iProc, new_iProc,BCcount[new_iProc], new_iProc,BCbase[new_iProc], BCsendoffset, *maxrecvsz);
+		        fflush(stdout);
                 //foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
                 foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, bc_winl);		  
                 //foMPI_Win_flush(new_iProc,bc_winl);
 	            //onesidecomm_bc += SuperLU_timer_() - t1;
                 BCcount[new_iProc] += 1;
- 		        //printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
-		        //fflush(stdout);
+ 		        printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
+		        fflush(stdout);
 	    } // for (iProc)
     }
   

@@ -255,9 +255,15 @@ extern void  pdgssvx_ABglobal(superlu_dist_options_t *, SuperMatrix *,
 			      ScalePermstruct_t *, double *,
 			      int, int, gridinfo_t *, LUstruct_t *, double *,
 			      SuperLUStat_t *, int *);
+#ifdef oneside
+extern float pddistribute(fact_t, int_t, SuperMatrix *, 
+			 ScalePermstruct_t *, Glu_freeable_t *, 
+			 LUstruct_t *, gridinfo_t *, int);
+#else
 extern float pddistribute(fact_t, int_t, SuperMatrix *, 
 			 ScalePermstruct_t *, Glu_freeable_t *, 
 			 LUstruct_t *, gridinfo_t *);
+#endif
 extern void  pdgssvx(superlu_dist_options_t *, SuperMatrix *, 
 		     ScalePermstruct_t *, double *,
 		     int, int, gridinfo_t *, LUstruct_t *,
