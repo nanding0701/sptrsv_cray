@@ -24,6 +24,9 @@ extern double* BC_taskq;
 extern double* RD_taskq;
 extern double* BC_taskq_u;
 extern double* RD_taskq_u;
+<<<<<<< HEAD
 =======
 >>>>>>> parent of b719807... LU but setup expensive
+=======
+>>>>>>> 3fe38a6691ea16ce209cbe208d40565ced6444c5
 //extern double *onesidedgemm;

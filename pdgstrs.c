@@ -1130,6 +1130,9 @@ if(procs==1){
 	
 #ifdef oneside
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3fe38a6691ea16ce209cbe208d40565ced6444c5
     
     BCcount = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
     RDcount = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
@@ -1155,6 +1158,7 @@ if(procs==1){
                         BCbase[i] = recv_size_all[i]*maxrecvsz;
                 }
         }
+<<<<<<< HEAD
         if(Pc > 1){
                 for (i=0;i<Pc;i++){
                         RDbase[i] = recv_size_all[Pr+i]*maxrecvsz;
@@ -1168,6 +1172,16 @@ if(procs==1){
         int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
 
 <<<<<<< HEAD
+=======
+    }
+    if(Pc > 1){
+            for (i=0;i<Pc;i++){
+                    RDbase[i] = recv_size_all[Pr+i]*maxrecvsz;
+            }
+    }        
+	
+
+>>>>>>> 3fe38a6691ea16ce209cbe208d40565ced6444c5
 	//BC_buffer_size=(nfrecvx+1)*maxrecvsz;
 	//RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
 	//printf("iam=%d,nfrecvx=%d,maxrecvsz=%d Correct~!!\n",iam,nfrecvx+1,maxrecvsz);
@@ -1211,6 +1225,7 @@ if(procs==1){
     //foMPI_Win_lock_all(0, bc_winl);
     //foMPI_Win_lock_all(0, rd_winl);
 	//t = SuperLU_timer_()-t;
+<<<<<<< HEAD
 =======
 	    BC_buffer_size=(nfrecvx+1)*maxrecvsz;
 	    RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
@@ -1263,6 +1278,8 @@ if(procs==1){
         foMPI_Win_lock_all(0, bc_winl);
         foMPI_Win_lock_all(0, rd_winl);
 >>>>>>> parent of b719807... LU but setup expensive
+=======
+>>>>>>> 3fe38a6691ea16ce209cbe208d40565ced6444c5
 #else
     if ( !(recvbuf_BC_fwd = (double*)SUPERLU_MALLOC(maxrecvsz*(nfrecvx+1) * sizeof(double))) )  // this needs to be optimized for 1D row 		ABORT("Malloc fails for recvbuf_BC_fwd[].");	
 	ABORT("Malloc fails for recvbuf_BC_fwd[].");	
@@ -2116,11 +2133,15 @@ uint8_t crc_8_val;
 		//	fflush(stdout);
 		if ( !iam ) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			printf(".. L-solve time\t%f\n", t);
 =======
 			printf("iam=%d, L-solve time\t%f\n", iam, t);
 			//printf("iam=%d, L-solve time\t%f,%f\n", iam, onesidecomm_rd,onesidecomm_bc);
 >>>>>>> parent of b719807... LU but setup expensive
+=======
+			printf(".. L-solve time\t%f\n", t);
+>>>>>>> 3fe38a6691ea16ce209cbe208d40565ced6444c5
 			fflush(stdout);
                // double tmp_solve=0, tmp_solve1=0;
                // for (int kkkkk=0; kkkkk<Pr;kkkkk++){
