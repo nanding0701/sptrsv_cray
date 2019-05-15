@@ -16,4 +16,5 @@ extern int *validRDQindex_u;
 //extern double onesidecomm_rd;
 //extern double onesidecomm_bc;
 extern int *recv_size_all;
+extern int *recv_size_all_u;
 //extern double *onesidedgemm;

@@ -1854,7 +1854,8 @@ if ( !iam) printf(".. Construct Reduce tree for L: %.2f\t\n", t);
      for(i=0; i<Pr; i++){
          if(BufSize_u[i]>0){
             validBCQindex_u[j]=i;
-            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex[j],BufSize[i]);
+            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex_u[j],BufSize_u[i]);
+            //fflush(stdout);
             j += 1;
         }    
      }
