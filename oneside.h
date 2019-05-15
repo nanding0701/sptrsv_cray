@@ -2,6 +2,8 @@
 #include "checksum.h"
 extern foMPI_Win bc_winl;
 extern foMPI_Win rd_winl;
+extern foMPI_Win bc_winl_u;
+extern foMPI_Win rd_winl_u;
 extern MPI_Comm row_comm;
 extern MPI_Comm col_comm;
 extern int *BufSize;
@@ -16,5 +18,12 @@ extern int *validRDQindex_u;
 //extern double onesidecomm_rd;
 //extern double onesidecomm_bc;
 extern int *recv_size_all;
+<<<<<<< HEAD
 extern int *recv_size_all_u;
+extern double* BC_taskq;
+extern double* RD_taskq;
+extern double* BC_taskq_u;
+extern double* RD_taskq_u;
+=======
+>>>>>>> parent of b719807... LU but setup expensive
 //extern double *onesidedgemm;

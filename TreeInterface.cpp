@@ -88,32 +88,12 @@ namespace SuperLU_ASYNCOMM{
 		if(precision=='d'){
 			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
             double *sendbuf = (double*) localBuffer;
-            //double *sendbufval;
-            //double checksum = 0.0;
-            //uint32_t crc_32_val;
-	        //crc_32_val = 0xffffffffL;
-            //uint32_t crc_32_val;
-            //crc_16_val = 0x0000;
-            ////int iam;
-	 		////double t1;
-            ////t1 = SuperLU_timer_();
-            //if ( !(sendbufval = (double*)SUPERLU_MALLOC( (msgSize+1) * sizeof(double))) )
-            //    ABORT("Malloc fails for sendbuf[]");
             for(Int i = 0; i<msgSize;++i){
                 sendbufval[i] = sendbuf[i];
-                //crc_32_val=update_crc_32(crc_32_val, sendbufval[i]);
-                //crc_16_val=update_crc_16(crc_16_val, sendbufval[i]);
-                //if(!std::isnan(sendbuf[i])) checksum += sendbuf[i];
             }
             sendbufval[msgSize] = crc_16((unsigned char*)sendbufval,sizeof(double)*msgSize);
-            ////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
-            ////fflush(stdout);
-			////msgSize += 1;
             BcastTree->forwardMessageOneSide(sendbufval,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
-            ////printf("END HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
-            ////fflush(stdout);
 			//BcastTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
-	        //onesidecomm_bc += SuperLU_timer_() - t1;
 		}
 		if(precision=='z'){
 			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
