@@ -1114,7 +1114,7 @@ if(procs==1){
     int *BCcount, *RDcount;
     long *BCbase, *RDbase; //BCsendoffset, RDsendoffset;
     //double* BC_taskq;
-    double* RD_taskq;
+    //double* RD_taskq;
     double nfrecv1=0;
     int checkend=0;
     int ird=0, tidx=0, bcidx=0, rdidx=0, tmp_id=0;
@@ -1124,7 +1124,6 @@ if(procs==1){
     long *RD_taskbuf_offset;
     int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
     int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
-    double initval=(-1.0);
     int shift=0;
     int recvRankNum=-1;
     uint16_t crc_16_val;
@@ -1151,27 +1150,18 @@ if(procs==1){
             }
     }        
 	
-    //int numM;
-    //int sub_numM=nfrecvx+nfrecvmod;
-    //MPI_Reduce(&numM, &sub_numM, 1, MPI_INT, MPI_SUM,
-    //        0, grid->comm);
-    //if (!iam) printf("Number of message is %d, total byte %d\n",numM,numM*maxrecvsz); 
-	//BC_buffer_size=(nfrecvx+1)*maxrecvsz;
-	RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
-	
-    //BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-    RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-    //printf("iam=%d, BC_buffer_size=%d\n",iam,maxrecvsz);
-    //printf("iam=%d, knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,knsupc,nrhs,XK_H, LSUM_H);
+	//RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
+    //RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    //printf("iam=%d, RD_buffer_size=%d\n",iam,RD_buffer_size);
     //fflush(stdout);
 	nfrecvx_buf=0;
     
     //for(i=0; i<BC_buffer_size; i++){
     //        BC_taskq[i] = -1.00;
     //}
-    for(i=0; i<RD_buffer_size; i++){
-            RD_taskq[i] = initval;
-    }
+    //for(i=0; i<RD_buffer_size; i++){
+    //        RD_taskq[i] = initval;
+    //}
 
     BC_taskbuf_offset = (long*)SUPERLU_MALLOC( Pr * sizeof(long));   // this needs to be optimized for 1D row mapping
     RD_taskbuf_offset = (long*)SUPERLU_MALLOC( Pc * sizeof(long));   // this needs to be optimized for 1D row mapping
@@ -1184,9 +1174,9 @@ if(procs==1){
         }       
     }
     for (rdidx=0;rdidx<Pc;rdidx++){
-             for(int tmp=0;tmp<rdidx;tmp++){ 
-                     RD_taskbuf_offset[rdidx] += BufSize_rd[tmp]*maxrecvsz; 
-             }        
+        for(int tmp=0;tmp<rdidx;tmp++){ 
+                RD_taskbuf_offset[rdidx] += BufSize_rd[tmp]*maxrecvsz; 
+        }        
     }
     
     BCis_solved = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
@@ -1194,7 +1184,7 @@ if(procs==1){
     memset(BCis_solved, 0, Pr * sizeof(int));
     memset(RDis_solved, 0, Pc * sizeof(int));
     //foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
-	foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
+	//foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
     foMPI_Win_lock_all(0, bc_winl);
     foMPI_Win_lock_all(0, rd_winl);
     onesidecomm_bc=0;
@@ -2079,22 +2069,22 @@ if(Llu->inv == 1){
 #else
 		SUPERLU_FREE(recvbuf_BC_fwd);
 
-		for (lk=0;lk<nsupers_j;++lk){
-			if(LBtree_ptr[lk]!=NULL){
-				// if(BcTree_IsRoot(LBtree_ptr[lk],'d')==YES){			
-				BcTree_waitSendRequest(LBtree_ptr[lk],'d');		
-				// }
-				// deallocate requests here
-			}
-		}
+		//for (lk=0;lk<nsupers_j;++lk){
+		//	if(LBtree_ptr[lk]!=NULL){
+		//		// if(BcTree_IsRoot(LBtree_ptr[lk],'d')==YES){			
+		//		BcTree_waitSendRequest(LBtree_ptr[lk],'d');		
+		//		// }
+		//		// deallocate requests here
+		//	}
+		//}
 
-		for (lk=0;lk<nsupers_i;++lk){
-			if(LRtree_ptr[lk]!=NULL){		
-				RdTree_waitSendRequest(LRtree_ptr[lk],'d');		
-				// deallocate requests here
-			}
-		}		
-		MPI_Barrier( grid->comm );
+		//for (lk=0;lk<nsupers_i;++lk){
+		//	if(LRtree_ptr[lk]!=NULL){		
+		//		RdTree_waitSendRequest(LRtree_ptr[lk],'d');		
+		//		// deallocate requests here
+		//	}
+		//}		
+		//MPI_Barrier( grid->comm );
 #endif
 #if ( VAMPIR>=1 )	
 		VT_traceoff();	
@@ -2269,27 +2259,27 @@ if(Llu->inv == 1){
         }
     }
     if(Pc > 1){
-            for (i=0;i<Pc;i++){
-                    RDbase[i] = recv_size_all_u[Pr+i]*maxrecvsz;
-            }
+        for (i=0;i<Pc;i++){
+                RDbase[i] = recv_size_all_u[Pr+i]*maxrecvsz;
+        }
     }        
 	
 
 	//BC_buffer_size=(nbrecvx+1)*maxrecvsz;
     //printf("iam=%d, BC_buffer_size=%d,nbrecvx=%d,knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,BC_buffer_size,nbrecvx,knsupc,nrhs,XK_H, LSUM_H);
     //fflush(stdout);
-    RD_buffer_size=(nbrecvmod+1)*maxrecvsz;
+    //RD_buffer_size=(nbrecvmod+1)*maxrecvsz;
 	
     //BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-    RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    //RD_taskq_u = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
 	
     
     //for(i=0; i<BC_buffer_size; i++){
     //        BC_taskq[i] = initval;
     //}
-    for(i=0; i<RD_buffer_size; i++){
-            RD_taskq[i] = initval;
-    }
+    //for(i=0; i<RD_buffer_size; i++){
+    //        RD_taskq_u[i] = initval;
+    //}
 
     
     for (bcidx=0;bcidx<Pr;bcidx++){
@@ -2304,9 +2294,9 @@ if(Llu->inv == 1){
     }
     
     //foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
-	foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
+	//foMPI_Win_create(RD_taskq_u, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl_u);
     foMPI_Win_lock_all(0, bc_winl_u);
-    foMPI_Win_lock_all(0, rd_winl);
+    foMPI_Win_lock_all(0, rd_winl_u);
 #else
 	if ( !(recvbuf_BC_fwd = (double*)SUPERLU_MALLOC(maxrecvsz*(nbrecvx+1) * sizeof(double))) )  // this needs to be optimized for 1D row mapping
 		ABORT("Malloc fails for recvbuf_BC_fwd[].");	
@@ -2591,7 +2581,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 
                 recvRankNum=validRDQindex_u[rdidx];  //bcidx; //validBCQindex[bcidx];
                 ird=RD_taskbuf_offset[recvRankNum]+RDis_solved[recvRankNum]*maxrecvsz;
-                recvbuf0 = &RD_taskq[ird];
+                recvbuf0 = &RD_taskq_u[ird];
                 k = *recvbuf0;
                 //printf("rdrd--111--iam=%d, rdidx=%d,k=%d\n",iam,rdidx,k);
                 //fflush(stdout);
@@ -2756,8 +2746,6 @@ while(nbrecv1< nbrecvx+nbrecvmod){
         nbrecv1 = totalsolveBC + totalsolveRD;
 }
 
-        foMPI_Win_unlock_all(bc_winl_u);
-        foMPI_Win_unlock_all(rd_winl);
 #else
 #ifdef _OPENMP
 #pragma omp parallel default (shared) 
@@ -3038,29 +3026,31 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 		
 		SUPERLU_FREE(rootsups);
 #ifdef oneside
-        foMPI_Win_free(&bc_winl_u); 
-        foMPI_Win_free(&rd_winl); 
+        foMPI_Win_unlock_all(bc_winl_u);
+        foMPI_Win_unlock_all(rd_winl_u);
+        //foMPI_Win_free(&bc_winl_u); 
+        //foMPI_Win_free(&rd_winl_u); 
         SUPERLU_FREE(BC_taskq_u);
-        SUPERLU_FREE(RD_taskq);
+        SUPERLU_FREE(RD_taskq_u);
 #else		
         SUPERLU_FREE(recvbuf_BC_fwd);		
 #endif		
-		for (lk=0;lk<nsupers_j;++lk){
-			if(UBtree_ptr[lk]!=NULL){
-				// if(BcTree_IsRoot(LBtree_ptr[lk],'d')==YES){			
-				BcTree_waitSendRequest(UBtree_ptr[lk],'d');		
-				// }
-				// deallocate requests here
-			}
-		}
+		//for (lk=0;lk<nsupers_j;++lk){
+		//	if(UBtree_ptr[lk]!=NULL){
+		//		// if(BcTree_IsRoot(LBtree_ptr[lk],'d')==YES){			
+		//		BcTree_waitSendRequest(UBtree_ptr[lk],'d');		
+		//		// }
+		//		// deallocate requests here
+		//	}
+		//}
 
-		for (lk=0;lk<nsupers_i;++lk){
-			if(URtree_ptr[lk]!=NULL){		
-				RdTree_waitSendRequest(URtree_ptr[lk],'d');		
-				// deallocate requests here
-			}
-		}		
-		MPI_Barrier( grid->comm );
+		//for (lk=0;lk<nsupers_i;++lk){
+		//	if(URtree_ptr[lk]!=NULL){		
+		//		RdTree_waitSendRequest(URtree_ptr[lk],'d');		
+		//		// deallocate requests here
+		//	}
+		//}		
+		//MPI_Barrier( grid->comm );
 
 		/*for (i = 0; i < Llu->SolveMsgSent; ++i) MPI_Request_free(&send_req[i]);*/
 

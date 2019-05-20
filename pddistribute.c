@@ -521,8 +521,6 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
     int Pr, Pc;
     int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
     int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
-    int BC_buffer_size_u=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
-    int RD_buffer_size_u=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
     Pc = grid->npcol;
     Pr = grid->nprow;
     
@@ -2201,8 +2199,6 @@ if ( !iam) printf(".. Construct Reduce tree for U: %.2f\t\n", t);
 #ifdef oneside
     int maxrecvsz = sp_ienv_dist(3)* nrhs + SUPERLU_MAX( XK_H, LSUM_H ) + 1; 
 	BC_buffer_size=(nfrecvx+1)*maxrecvsz;
-    //printf("iam=%d, knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,sp_ienv_dist(3),nrhs,XK_H, LSUM_H);
-    //fflush(stdout);
     BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
     for(i=0; i<BC_buffer_size; i++){
             BC_taskq[i] = -1.00;
@@ -2211,13 +2207,43 @@ if ( !iam) printf(".. Construct Reduce tree for U: %.2f\t\n", t);
 	
     
     BC_buffer_size=(nbrecvx+1)*maxrecvsz;
-    //printf("iam=%d, newBC_buffer_size=%d,nbrecvx=%d, knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam, BC_buffer_size, nbrecvx, sp_ienv_dist(3),nrhs,XK_H, LSUM_H);
-    //fflush(stdout);
     BC_taskq_u = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
     for(i=0; i<BC_buffer_size; i++){
             BC_taskq_u[i] = -1.00;
     }
     foMPI_Win_create(BC_taskq_u, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl_u);
+    
+    
+    int nfrecvmod=0;
+    for (lk=0;lk<CEILING( nsupers, grid->nprow );++lk){
+        if(LRtree_ptr[lk]!=NULL){
+            RdTree_allocateRequest(LRtree_ptr[lk],'d');
+            nfrecvmod += RdTree_GetDestCount(LRtree_ptr[lk],'d');
+        }
+    }
+	RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
+    //printf("iam=%d, newRD_buffer_size=%d\n",iam,RD_buffer_size);
+    //fflush(stdout);
+    RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    for(i=0; i<RD_buffer_size; i++){
+            RD_taskq[i] = -1.0;
+    }
+	foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
+    
+    int nbrecvmod=0 ;
+	for (lk=0;lk<CEILING( nsupers, grid->nprow );++lk){
+		if(URtree_ptr[lk]!=NULL){
+			RdTree_allocateRequest(URtree_ptr[lk],'d');			
+			nbrecvmod += RdTree_GetDestCount(URtree_ptr[lk],'d');
+		}
+    }
+    
+	RD_buffer_size=(nbrecvmod+1)*maxrecvsz;
+    RD_taskq_u = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    for(i=0; i<RD_buffer_size; i++){
+            RD_taskq_u[i] = -1.0;
+    }
+	foMPI_Win_create(RD_taskq_u, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl_u);
     
 #endif
 

@@ -139,7 +139,7 @@ namespace SuperLU_ASYNCOMM{
 	 		    //double t1;
                 //t1 = SuperLU_timer_();
                 localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-		        ReduceTree->forwardMessageOneSide((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
+		        ReduceTree->forwardMessageOneSideU((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
 		        //onesidecomm_bc += SuperLU_timer_() - t1;
         }
 		if(precision=='z'){
