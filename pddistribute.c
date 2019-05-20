@@ -519,10 +519,8 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
 //#endif
 #ifdef oneside
     int Pr, Pc;
-    int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
-    int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
-    int BC_buffer_size_u=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
-    int RD_buffer_size_u=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
+    int BC_buffer_size=0; 
+    int RD_buffer_size=0;  
     Pc = grid->npcol;
     Pr = grid->nprow;
     
@@ -1702,7 +1700,6 @@ if ( !iam) printf(".. Construct Bcast tree for L: %.2f\t\n", t);
                     MPI_Irecv(&recv_size_all[Pr+i],  1, MPI_INT, i, 0, row_comm, &row_req[req_count]);
     	            MPI_Isend(&oneside_buf_offset[i+Pr],1, MPI_INT, i, 0, row_comm, &row_req[req_count+1]);
                     req_count += 2;
-                    //MPI_Sendrecv(&nfrecvmod,1, MPI_INT, i, 0,&recv_size_all[Pr+i], 1, MPI_INT, i, 0, row_comm,&status); 
             }
     }        
     MPI_Waitall(2*(Pc-1), row_req, row_status);
@@ -2107,7 +2104,6 @@ if ( !iam) printf(".. Construct Bcast tree for U: %.2f\t\n", t);
                     MPI_Irecv(&recv_size_all_u[Pr+i],  1, MPI_INT, i, 0, row_comm, &row_req[req_count]);
     	            MPI_Isend(&oneside_buf_offset[i+Pr],1, MPI_INT, i, 0, row_comm, &row_req[req_count+1]);
                     req_count += 2;
-                    //MPI_Sendrecv(&nfrecvmod,1, MPI_INT, i, 0,&recv_size_all[Pr+i], 1, MPI_INT, i, 0, row_comm,&status); 
             }
     }        
     MPI_Waitall(2*(Pc-1), row_req, row_status);
@@ -2218,6 +2214,41 @@ if ( !iam) printf(".. Construct Reduce tree for U: %.2f\t\n", t);
             BC_taskq_u[i] = -1.00;
     }
     foMPI_Win_create(BC_taskq_u, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl_u);
+    
+    int nfrecvmod=0;
+	for (lk=0;lk<CEILING( nsupers, grid->nprow);++lk){
+		if(LRtree_ptr[lk]!=NULL){
+			RdTree_allocateRequest(LRtree_ptr[lk],'d');			
+			nfrecvmod += RdTree_GetDestCount(LRtree_ptr[lk],'d');
+		}
+    }    
+    
+    RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
+    //printf("iam=%d, newRD_buffer_size=%d,nfrecvmod=%d,knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,RD_buffer_size,nfrecvmod,sp_ienv_dist(3),nrhs,XK_H, LSUM_H);
+    //fflush(stdout);
+    
+    //RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));
+    //for(i=0; i<RD_buffer_size; i++){
+    //    RD_taskq[i] = -1.00;
+    //}
+	//foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
+
+
+    //int nbrecvmod=0;
+	//for (lk=0;lk<CEILING( nsupers, grid->nprow);++lk){
+	//	if(URtree_ptr[lk]!=NULL){
+	//		RdTree_allocateRequest(URtree_ptr[lk],'d');			
+	//		nbrecvmod += RdTree_GetDestCount(URtree_ptr[lk],'d');
+	//	}
+    //}
+
+    //RD_buffer_size=(nbrecvmod+1)*maxrecvsz;
+    //RD_taskq_u = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));
+    //for(i=0; i<RD_buffer_size; i++){
+    //    RD_taskq_u[i] = -1.00;
+    //}
+	//foMPI_Win_create(RD_taskq_u, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl_u);
+
     
 #endif
 
