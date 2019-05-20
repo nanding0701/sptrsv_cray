@@ -12,7 +12,7 @@ extern int *BufSize_u;
 extern int *BufSize_urd;
 extern int *validBCQindex_u;
 extern int *validRDQindex_u;
-//extern double *onesidecomm_bc;
+extern double onesidecomm_bc;
 //extern double onesidecomm_rd;
 //extern double onesidecomm_bc;
 extern int *recv_size_all;

@@ -731,6 +731,7 @@ foMPI_Win bc_winl;
 foMPI_Win rd_winl;
 MPI_Comm row_comm;
 MPI_Comm col_comm;
+double onesidecomm_bc;
 //double onesidecomm_rd;
 //double onesidecomm_bc;
 #endif
@@ -1156,7 +1157,11 @@ if(procs==1){
             }
     }        
 	
-
+    int numM;
+    int sub_numM=nfrecvx+nfrecvmod;
+    MPI_Reduce(&numM, &sub_numM, 1, MPI_INT, MPI_SUM,
+            0, grid->comm);
+    if (!iam) printf("Number of message is %d, total byte %d\n",numM,numM*maxrecvsz); 
 	BC_buffer_size=(nfrecvx+1)*maxrecvsz;
 	RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
 	
@@ -1196,6 +1201,7 @@ if(procs==1){
 	foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl);
     foMPI_Win_lock_all(0, bc_winl);
     foMPI_Win_lock_all(0, rd_winl);
+    onesidecomm_bc=0;
 #else
 	
         if ( !(recvbuf_BC_fwd = (double*)SUPERLU_MALLOC(maxrecvsz*(nfrecvx+1) * sizeof(double))) )  // this needs to be optimized for 1D row 		ABORT("Malloc fails for recvbuf_BC_fwd[].");	
@@ -1802,8 +1808,6 @@ if(Llu->inv == 1){
 }// outer-most while 
 
 //printf("Iam %d OUT!!!\n",iam);
-        foMPI_Win_unlock_all(bc_winl);
-        foMPI_Win_unlock_all(rd_winl);
 //fflush(stdout);
 #else
 
@@ -2040,17 +2044,17 @@ if(Llu->inv == 1){
         //printf("Iam %d out\n",iam);
 		//	fflush(stdout);
 		if ( !iam ) {
-			printf(".. L-solve time\t%f\n", iam, t);
+			printf(".. L-solve time\t%f,%f\n", t,onesidecomm_bc);
 			fflush(stdout);
 		}
 
-        //double tmax1;
+        double tmax1;
 		MPI_Reduce (&t, &tmax, 1, MPI_DOUBLE,
 				MPI_MAX, 0, grid->comm);
-		//MPI_Reduce (&onesidecomm_bc, &tmax1, 1, MPI_DOUBLE,
-		//		MPI_MAX, 0, grid->comm);
+		MPI_Reduce (&onesidecomm_bc, &tmax1, 1, MPI_DOUBLE,
+				MPI_MAX, 0, grid->comm);
 		if ( !iam ) {
-			printf(".. L-solve time (MAX) \t%8.4f\n", tmax);	
+			printf(".. L-solve time (MAX) \t%8.4f,%f\n", tmax, tmax1);	
 			fflush(stdout);
 		}	
 
@@ -2085,6 +2089,8 @@ if(Llu->inv == 1){
 		SUPERLU_FREE(leaf_send);
 		SUPERLU_FREE(leafsups);
 #ifdef oneside
+        foMPI_Win_unlock_all(bc_winl);
+        foMPI_Win_unlock_all(rd_winl);
                 foMPI_Win_free(&bc_winl); 
                 foMPI_Win_free(&rd_winl); 
                 SUPERLU_FREE(BC_taskq);

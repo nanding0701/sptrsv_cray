@@ -95,8 +95,8 @@ namespace SuperLU_ASYNCOMM{
             //uint32_t crc_32_val;
             //crc_16_val = 0x0000;
             ////int iam;
-	 		////double t1;
-            ////t1 = SuperLU_timer_();
+	 		double t1;
+            t1 = SuperLU_timer_();
             //if ( !(sendbufval = (double*)SUPERLU_MALLOC( (msgSize+1) * sizeof(double))) )
             //    ABORT("Malloc fails for sendbuf[]");
             for(Int i = 0; i<msgSize;++i){
@@ -113,7 +113,7 @@ namespace SuperLU_ASYNCOMM{
             ////printf("END HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
             ////fflush(stdout);
 			//BcastTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
-	        //onesidecomm_bc += SuperLU_timer_() - t1;
+	        onesidecomm_bc += SuperLU_timer_() - t1;
 		}
 		if(precision=='z'){
 			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
@@ -130,8 +130,8 @@ namespace SuperLU_ASYNCOMM{
                 //uint32_t crc_32_val;
                 //crc_16_val = 0x0000;
                 //int iam;
-	 		    //double t1;
-                //t1 = SuperLU_timer_();
+	 		    double t1;
+                t1 = SuperLU_timer_();
                 //if ( !(sendbufval = (double*)SUPERLU_MALLOC( (msgSize+1) * sizeof(double))) )
                 //        ABORT("Malloc fails for sendbuf[]");
                 for(Int i = 0; i<msgSize;++i){
@@ -147,7 +147,7 @@ namespace SuperLU_ASYNCOMM{
 			    //////msgSize += 1;
 		        ReduceTree->forwardMessageOneSide(sendbufval, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
 		        //ReduceTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
-		        //onesidecomm_bc += SuperLU_timer_() - t1;
+		        onesidecomm_bc += SuperLU_timer_() - t1;
         }
 		if(precision=='z'){
 		    TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
