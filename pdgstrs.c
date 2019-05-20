@@ -1517,25 +1517,21 @@ if(Llu->inv == 1){
 
                 lk = LBj( k, grid );    /* local block number */
                 
-                checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H;
+                checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs;
 	            //crc_16_val = 0x0000;
 	            //crc_32_val = 0xffffffffL;
-                crc_16_val=crc_16((unsigned char*)recvbuf0,sizeof(double)*checkend);
-                //crc_32_val=crc_32((unsigned char*)recvbuf0,sizeof(double)*checkend);
-                //for (int tmp=0; tmp<checkend; ++tmp){
-                //    //crc_32_val=update_crc_32(crc_32_val, recvbuf0[tmp]); 
-                //    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
-                //   // if(!isnan(recvbuf0[tmp])) {
-                //   //     checksum += recvbuf0[tmp];
-                //   //}
-                //}
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
+                crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
+
+                //printf("bcbc--333--iam=%d, checksum=%d,should be %d\n",iam, crc_16_val, (uint16_t)recvbuf0[XK_H-1]);
                 //fflush(stdout);
-                
-                if(crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+                //for(int tmp=0; tmp<checkend+3;tmp++){
+                //    printf("%f, ",recvbuf0[tmp]);
+                //    fflush(stdout);
+                //}
+                //printf("\n");
+                //fflush(stdout);
+                if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
                 //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
-                   // printf("bcbc--333--iam=%d, checksum=%f,should be %f\n",iam,checksum, recvbuf0[checkend]);
-                   // fflush(stdout);
                    if(shift>0){
                         validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                         validBCQindex[bcidx]=-1;
@@ -1626,21 +1622,10 @@ if(Llu->inv == 1){
                 }    
                 lk = LBi( k, grid );
                 
-                checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H;
-                crc_16_val=crc_16((unsigned char*)recvbuf0,sizeof(double)*checkend);
-	            //crc_32_val = 0xffffffffL;
-                //for (int tmp=0; tmp<checkend; ++tmp){
-                //    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
-                //    //if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
-                //}
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
-                //fflush(stdout);
-                //if(abs(checksum-recvbuf0[checkend])<0.00000001) {
-                //if((uint16_t)crc_16_val!=(uint16_t)recvbuf0[checkend]) {
-                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
-                //if((int)checksum!=(int)recvbuf0[checkend]) {
-                //if(abs(checksum-recvbuf0[checkend])!=0) {
-                if(crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+                checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs;
+                crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                
+                if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
                         validRDQindex[rdidx]=-1;
@@ -2548,12 +2533,12 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 
             lk = LBj( k, grid );    /* local block number */
             
-            checkend=BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H;
-            crc_16_val=crc_16((unsigned char*)recvbuf0,sizeof(double)*checkend);
+            checkend=BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs;
+            crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
             //printf("bcbc--222--iam=%d, checksum=%d,should be %d\n",iam,crc_16_val, (uint16_t)recvbuf0[checkend]);
             //fflush(stdout);
             
-            if(crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+            if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
                if(shift>0){
                     validBCQindex_u[bcidx-shift]=validBCQindex_u[bcidx];
                     validBCQindex_u[bcidx]=-1;
@@ -2621,8 +2606,8 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 }    
                 lk = LBi( k, grid );
                 
-                checkend=RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs+LSUM_H;
-                crc_16_val=crc_16((unsigned char*)recvbuf0,sizeof(double)*checkend);
+                checkend=RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs;
+                crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
 	            //crc_32_val = 0xffffffffL;
                 //for (int tmp=0; tmp<checkend; ++tmp){
                 //    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
@@ -2635,7 +2620,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
                 //if((int)checksum!=(int)recvbuf0[checkend]) {
                 //if(abs(checksum-recvbuf0[checkend])!=0) {
-                if(crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+                if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
                    if(shift>0){
                         validRDQindex_u[rdidx-shift]=validRDQindex_u[rdidx];
                         validRDQindex_u[rdidx]=-1;

@@ -2191,7 +2191,7 @@ void dlsum_bmod_inv_master
 						dlsum_bmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, gik, bmod, Urbs,Urbs2,
 								Ucb_indptr, Ucb_valptr, xsup, grid, Llu,
 								send_req, stat, sizelsum,sizertemp,thread_id,num_thread,
-                                &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz, sendbufval);
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc, maxrecvsz, sendbufval);
 						}
 					}
 				// } /* if brecv[ik] == 0 */
