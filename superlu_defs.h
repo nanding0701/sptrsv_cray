@@ -848,6 +848,8 @@ extern yes_no_t BcTree_IsRoot(BcTree Tree, char precision);
 #ifdef oneside
 extern void 	BcTree_forwardMessageOneSide(BcTree Tree, double* localBuffer, int msgSize, char precision, int* BClocal_buf_id, int* BCcount, long* BCbase, int* maxrecvsz, int Pc ,double* sendbufval);
 extern void 	RdTree_forwardMessageOneSide(RdTree Tree, double* localBuffer, int msgSize, char precision, int* RDlocal_buf_id, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double* sendbufval);
+extern void 	BcTree_forwardMessageOneSideU(BcTree Tree, double* localBuffer, int msgSize, char precision, int* BClocal_buf_id, int* BCcount, long* BCbase, int* maxrecvsz, int Pc ,double* sendbufval);
+extern void 	RdTree_forwardMessageOneSideU(RdTree Tree, double* localBuffer, int msgSize, char precision, int* RDlocal_buf_id, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double* sendbufval);
 #endif
 extern void 	BcTree_forwardMessageSimple(BcTree Tree, void* localBuffer, int msgSize, char precision);
 extern void 	RdTree_forwardMessageSimple(RdTree Tree, void* localBuffer, int msgSize, char precision);

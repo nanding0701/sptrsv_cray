@@ -320,6 +320,10 @@ dReDistribute_A(SuperMatrix *A, ScalePermstruct_t *ScalePermstruct,
 } /* dReDistribute_A */
 
 #ifdef oneside
+foMPI_Win bc_winl;
+foMPI_Win rd_winl;
+foMPI_Win bc_winl_u;
+foMPI_Win rd_winl_u;
 MPI_Comm row_comm;
 MPI_Comm col_comm;
 int* BufSize;
@@ -332,12 +336,22 @@ int* BufSize_urd;
 int *validBCQindex_u;
 int *validRDQindex_u;
 int *recv_size_all_u;
-#endif        
+double* BC_taskq;
+double* RD_taskq;
+double* BC_taskq_u;
+double* RD_taskq_u;
+float
+pddistribute(fact_t fact, int_t n, SuperMatrix *A,
+	     ScalePermstruct_t *ScalePermstruct,
+	     Glu_freeable_t *Glu_freeable, LUstruct_t *LUstruct,
+	     gridinfo_t *grid, int nrhs)
+#else        
 float
 pddistribute(fact_t fact, int_t n, SuperMatrix *A,
 	     ScalePermstruct_t *ScalePermstruct,
 	     Glu_freeable_t *Glu_freeable, LUstruct_t *LUstruct,
 	     gridinfo_t *grid)
+#endif
 /*
  * -- Distributed SuperLU routine (version 2.0) --
  * Lawrence Berkeley National Lab, Univ. of California Berkeley.
@@ -505,6 +519,10 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
 //#endif
 #ifdef oneside
     int Pr, Pc;
+    int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
+    int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
+    int BC_buffer_size_u=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
+    int RD_buffer_size_u=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
     Pc = grid->npcol;
     Pr = grid->nprow;
     
@@ -1473,6 +1491,16 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
             j += 1;
         }    
      }
+
+	//BC_buffer_size=(1+BC_buffer_size)*maxrecvsz;
+    //printf("iam=%d, BC_buffer_size_new=%d\n",iam,BC_buffer_size);
+    //fflush(stdout);
+    //BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));
+    //for(i=0; i<BC_buffer_size; i++){
+    //        BC_taskq[i] = -1.00;
+    //}
+    //foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
+
 #endif
 
 #if ( PROFlevel>=1 )
@@ -2169,6 +2197,29 @@ if ( !iam) printf(".. Construct Reduce tree for U: %.2f\t\n", t);
         SUPERLU_FREE(a);
     }
     SUPERLU_FREE(xa);
+
+#ifdef oneside
+    int maxrecvsz = sp_ienv_dist(3)* nrhs + SUPERLU_MAX( XK_H, LSUM_H ) + 1; 
+	BC_buffer_size=(nfrecvx+1)*maxrecvsz;
+    //printf("iam=%d, knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,sp_ienv_dist(3),nrhs,XK_H, LSUM_H);
+    //fflush(stdout);
+    BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    for(i=0; i<BC_buffer_size; i++){
+            BC_taskq[i] = -1.00;
+    }
+    foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
+	
+    
+    BC_buffer_size=(nbrecvx+1)*maxrecvsz;
+    //printf("iam=%d, newBC_buffer_size=%d,nbrecvx=%d, knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam, BC_buffer_size, nbrecvx, sp_ienv_dist(3),nrhs,XK_H, LSUM_H);
+    //fflush(stdout);
+    BC_taskq_u = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    for(i=0; i<BC_buffer_size; i++){
+            BC_taskq_u[i] = -1.00;
+    }
+    foMPI_Win_create(BC_taskq_u, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl_u);
+    
+#endif
 
 #if ( DEBUGlevel>=1 )
     /* Memory allocated but not freed:

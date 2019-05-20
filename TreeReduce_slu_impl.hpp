@@ -75,7 +75,37 @@ namespace SuperLU_ASYNCOMM {
  		    //printf("End---I am %d, row_id %d, send to world rank %d/%d \n",iam, *iam_row,iProc, new_iProc);
 		    //fflush(stdout);
 	}
-    }
+ }
+
+  template< typename T> 
+    inline void TreeReduce_slu<T>::forwardMessageOneSideU(T * locBuffer, Int msgSize, int* iam_row, int* RDcount, long* RDbase, int* maxrecvsz, int Pc){
+	    double t1;
+        long RDsendoffset=0;
+        Int new_iProc;
+        //Int new_msgSize = msgSize + 1;
+        if(this->myRank_!=this->myRoot_){
+            //t1 = SuperLU_timer_();
+		    Int iProc = this->myRoot_;
+		    new_iProc = iProc%Pc;
+		    RDsendoffset = RDbase[new_iProc] + RDcount[new_iProc]*(*maxrecvsz);
+ 		    
+            //printf("I am %d, row_id %d, send to world rank %d/%d, RDcount[%d]=%d, RDbase[%d]=%ld,RDsendoffset=%ld, maxrecvsz=%d\n",iam, *iam_row, iProc, new_iProc, new_iProc, RDcount[new_iProc], new_iProc, RDbase[new_iProc], RDsendoffset, *maxrecvsz);
+		    //fflush(stdout);
+		
+            //t1 = SuperLU_timer_();
+            //foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, RDsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, rd_winl);		  
+            foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, RDsendoffset, msgSize, MPI_DOUBLE,rd_winl);		  
+            //foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, RDsendoffset, new_msgSize, MPI_DOUBLE,rd_winl);		  
+	        //onesidecomm_bc += SuperLU_timer_() - t1;
+		///foMPI_Accumulate(locBuffer, msgSize, this->type_, new_iProc, RDsendoffset, msgSize, this->type_, foMPI_REPLACE, rd_winl);		  
+		///foMPI_Accumulate(&my_RDtasktail, 1, MPI_DOUBLE, new_iProc, *iam_row, 1, MPI_DOUBLE, foMPI_SUM, rd_winl);		  
+	        //onesidecomm_bc[iam] += SuperLU_timer_() - t1;
+		    RDcount[new_iProc] += 1; 
+ 		    //printf("End---I am %d, row_id %d, send to world rank %d/%d \n",iam, *iam_row,iProc, new_iProc);
+		    //fflush(stdout);
+	}
+ }
+
  #endif  
   template< typename T> 
     inline void TreeReduce_slu<T>::forwardMessageSimple(T * locBuffer, Int msgSize){

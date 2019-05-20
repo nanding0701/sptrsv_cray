@@ -2083,7 +2083,7 @@ void dlsum_bmod_inv_master
 					for (jj=0;jj<iknsupc*nrhs;jj++)
 						lsum[il + jj ] += lsum[il + jj + ii*sizelsum];
 #ifdef oneside				
-                RdTree_forwardMessageOneSide(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
+                RdTree_forwardMessageOneSideU(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
 #else				
                 RdTree_forwardMessageSimple(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'d')*nrhs+LSUM_H,'d');
 #endif
@@ -2174,7 +2174,7 @@ void dlsum_bmod_inv_master
 					// }
 					if(UBtree_ptr[lk1]!=NULL){
 #ifdef oneside					
-                        BcTree_forwardMessageOneSide(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc, sendbufval); 
+                        BcTree_forwardMessageOneSideU(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc, sendbufval); 
 #else					
                         BcTree_forwardMessageSimple(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'d')*nrhs+XK_H,'d'); 
 #endif
