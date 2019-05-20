@@ -1122,6 +1122,8 @@ if(procs==1){
     int totalsolveBC=0, totalsolveRD=0;
     long* BC_taskbuf_offset;
     long *RD_taskbuf_offset;
+    int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
+    int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
     int shift=0;
     int recvRankNum=-1;
     uint16_t crc_16_val;
@@ -1147,11 +1149,16 @@ if(procs==1){
                     RDbase[i] = recv_size_all[Pr+i]*maxrecvsz;
             }
     }        
+	
+	//RD_buffer_size=(nfrecvmod+1)*maxrecvsz;
+    //RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    //printf("iam=%d, RD_buffer_size=%d\n",iam,RD_buffer_size);
     //fflush(stdout);
-	//
-    RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
 	nfrecvx_buf=0;
     
+    //for(i=0; i<BC_buffer_size; i++){
+    //        BC_taskq[i] = -1.00;
+    //}
     //for(i=0; i<RD_buffer_size; i++){
     //        RD_taskq[i] = initval;
     //}
@@ -2024,6 +2031,7 @@ if(Llu->inv == 1){
 
        
 
+		//MPI_Barrier( grid->comm );
 		t = SuperLU_timer_();
 #endif
                 //exit(0);
@@ -2257,6 +2265,7 @@ if(Llu->inv == 1){
     }        
 	
 
+	//BC_buffer_size=(nbrecvx+1)*maxrecvsz;
     //printf("iam=%d, BC_buffer_size=%d,nbrecvx=%d,knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,BC_buffer_size,nbrecvx,knsupc,nrhs,XK_H, LSUM_H);
     //fflush(stdout);
     //RD_buffer_size=(nbrecvmod+1)*maxrecvsz;
@@ -3021,8 +3030,6 @@ while(nbrecv1< nbrecvx+nbrecvmod){
         foMPI_Win_unlock_all(rd_winl_u);
         //foMPI_Win_free(&bc_winl_u); 
         //foMPI_Win_free(&rd_winl_u); 
-        foMPI_Win_free(&bc_winl_u); 
-        foMPI_Win_free(&rd_winl_u); 
         SUPERLU_FREE(BC_taskq_u);
         SUPERLU_FREE(RD_taskq_u);
 #else		

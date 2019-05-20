@@ -519,8 +519,8 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
 //#endif
 #ifdef oneside
     int Pr, Pc;
-    int BC_buffer_size=0; 
-    int RD_buffer_size=0;  
+    int BC_buffer_size=0; //= Pr * maxrecvsz*(nfrecvx+1) + Pr; 
+    int RD_buffer_size=0; //= Pc * maxrecvsz*(nfrecvmod+1) + Pc; 
     Pc = grid->npcol;
     Pr = grid->nprow;
     
@@ -1700,6 +1700,7 @@ if ( !iam) printf(".. Construct Bcast tree for L: %.2f\t\n", t);
                     MPI_Irecv(&recv_size_all[Pr+i],  1, MPI_INT, i, 0, row_comm, &row_req[req_count]);
     	            MPI_Isend(&oneside_buf_offset[i+Pr],1, MPI_INT, i, 0, row_comm, &row_req[req_count+1]);
                     req_count += 2;
+                    //MPI_Sendrecv(&nfrecvmod,1, MPI_INT, i, 0,&recv_size_all[Pr+i], 1, MPI_INT, i, 0, row_comm,&status); 
             }
     }        
     MPI_Waitall(2*(Pc-1), row_req, row_status);
@@ -2104,6 +2105,7 @@ if ( !iam) printf(".. Construct Bcast tree for U: %.2f\t\n", t);
                     MPI_Irecv(&recv_size_all_u[Pr+i],  1, MPI_INT, i, 0, row_comm, &row_req[req_count]);
     	            MPI_Isend(&oneside_buf_offset[i+Pr],1, MPI_INT, i, 0, row_comm, &row_req[req_count+1]);
                     req_count += 2;
+                    //MPI_Sendrecv(&nfrecvmod,1, MPI_INT, i, 0,&recv_size_all[Pr+i], 1, MPI_INT, i, 0, row_comm,&status); 
             }
     }        
     MPI_Waitall(2*(Pc-1), row_req, row_status);
