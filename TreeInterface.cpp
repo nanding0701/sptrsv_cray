@@ -14,11 +14,20 @@ namespace SuperLU_ASYNCOMM{
 	extern "C" {
 #endif
 
+#ifdef oneside        
     uint32_t update_crc_32(uint32_t crc_32_val, unsigned char c);
     uint16_t update_crc_16(uint16_t crc_16_val, unsigned char c);
     uint8_t crc_8(unsigned char * crc_8_val,size_t b);
     uint16_t crc_16(unsigned char * crc_16_val,size_t b);
     uint32_t crc_32(unsigned char * crc_32_val,size_t b);
+
+    unsigned int calcul_hash(const void* buffer, size_t length)
+    {
+        unsigned int const seed = 0;   /* or any other value */
+        unsigned int const hash = XXH32(buffer, length, seed);
+        return hash;
+    }
+#endif    
     BcTree BcTree_Create_oneside(MPI_Comm comm, Int* ranks, Int rank_cnt, Int msgSize, double rseed, char precision, int* BufSize, int Pc){
 		assert(msgSize>0);
 		if(precision=='d'){
@@ -89,7 +98,14 @@ namespace SuperLU_ASYNCOMM{
 			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
 	 		//double t1;
             //t1 = SuperLU_timer_();
-            localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+            //printf("k=%lf,sum=%lf\n", localBuffer[0], localBuffer[XK_H-1]);
+            //fflush(stdout);
+            localBuffer[XK_H-1] = calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+            //if (localBuffer[XK_H-1] == calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H))){
+            //printf("k=%lf,size=%d,sum=%lf, realwum=%d\n",localBuffer[0],msgSize-XK_H, localBuffer[XK_H-1], calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H)));
+            //fflush(stdout);
+            //}
+            //localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
             BcastTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
 	        //onesidecomm_bc += SuperLU_timer_() - t1;
 		}
@@ -121,7 +137,10 @@ namespace SuperLU_ASYNCOMM{
                 //////fflush(stdout);
 	 		    //double t1;
                 //t1 = SuperLU_timer_();
-                localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
+                //printf("k=%lf,sum=%lf\n", localBuffer[0], localBuffer[LSUM_H-1]);
+                //fflush(stdout);
+                localBuffer[LSUM_H-1]=calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
+                //localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
 		        ReduceTree->forwardMessageOneSide((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
 		        //onesidecomm_bc += SuperLU_timer_() - t1;
         }

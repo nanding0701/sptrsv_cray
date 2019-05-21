@@ -1127,9 +1127,9 @@ if(procs==1){
     int shift=0;
     int recvRankNum=-1;
     uint16_t crc_16_val;
-    uint32_t crc_32_val;
-    uint8_t crc_8_val;
-    
+   
+    unsigned int myhash;
+
     BCcount = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
     RDcount = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
     memset(BCcount, 0, ( Pr * sizeof(int)));
@@ -1155,7 +1155,7 @@ if(procs==1){
     //printf("iam=%d, RD_buffer_size=%d\n",iam,RD_buffer_size);
     //fflush(stdout);
 	nfrecvx_buf=0;
-    
+    double checksum=0; 
     //for(i=0; i<BC_buffer_size; i++){
     //        BC_taskq[i] = -1.00;
     //}
@@ -1506,8 +1506,10 @@ if(Llu->inv == 1){
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs;
 	            //crc_16_val = 0x0000;
 	            //crc_32_val = 0xffffffffL;
-                crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
-
+                myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
+                //crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
+                //printf("bcbc--333--k=%lf, size=%d,checksum=%d, myhash=%d,should be %lf\n",recvbuf0[0], checkend, calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend), myhash, recvbuf0[XK_H-1]);
+                //fflush(stdout);
                 //printf("bcbc--333--iam=%d, checksum=%d,should be %d\n",iam, crc_16_val, (uint16_t)recvbuf0[XK_H-1]);
                 //fflush(stdout);
                 //for(int tmp=0; tmp<checkend+3;tmp++){
@@ -1516,9 +1518,9 @@ if(Llu->inv == 1){
                 //}
                 //printf("\n");
                 //fflush(stdout);
-                if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
-                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
-                   if(shift>0){
+                //if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
+                if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
+                    if(shift>0){
                         validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                         validBCQindex[bcidx]=-1;
                         //printf("iam=%d,Now shift %d to %d\n",iam,bcidx,bcidx-shift);
@@ -1609,9 +1611,13 @@ if(Llu->inv == 1){
                 lk = LBi( k, grid );
                 
                 checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs;
-                crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                //crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                //printf("rdrd--333--iam=%d, checksum=%lf,should be %lf\n",iam, sum, recvbuf0[LSUM_H-1]);
+                //fflush(stdout);
                 
-                if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
+                //if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
+                if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
                         validRDQindex[rdidx]=-1;

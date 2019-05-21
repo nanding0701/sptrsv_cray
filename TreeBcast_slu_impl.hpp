@@ -200,6 +200,7 @@ namespace SuperLU_ASYNCOMM {
                 //t1 = SuperLU_timer_();
                 //foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, bc_winl);		  
                 foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, msgSize, MPI_DOUBLE,bc_winl);
+                //foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, msgSize, this->type_,bc_winl);
                 //foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
                 //foMPI_Win_flush(new_iProc,bc_winl);
 	            //onesidecomm_bc += SuperLU_timer_() - t1;
