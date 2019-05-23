@@ -1438,8 +1438,8 @@ if(Llu->inv == 1){
 				}
 
 			}
-    double t100;
-    t100= SuperLU_timer_();
+    //double t100;
+    //t100= SuperLU_timer_();
 
 			for (i=0;i<nleaf_send;i++){
 				lk = leaf_send[i*aln_i];
@@ -1462,7 +1462,7 @@ if(Llu->inv == 1){
 #endif 
 				}
 			}
-               onesidecomm_bc += SuperLU_timer_() - t100;
+               //onesidecomm_bc += SuperLU_timer_() - t100;
 
 
 #ifdef USE_VTUNE
