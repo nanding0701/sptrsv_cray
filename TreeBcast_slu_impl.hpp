@@ -195,16 +195,16 @@ namespace SuperLU_ASYNCOMM {
         //Int new_msgSize = msgSize +1;
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
                 Int iProc = this->myDests_[idxRecv];
+                //t1 = SuperLU_timer_();
 		        new_iProc = iProc/Pc;
                 BCsendoffset = BCbase[new_iProc] + BCcount[new_iProc]*(*maxrecvsz);
-                //t1 = SuperLU_timer_();
                 //foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, bc_winl);		  
                 foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, msgSize, MPI_DOUBLE,bc_winl);
                 //foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, msgSize, this->type_,bc_winl);
                 //foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
                 //foMPI_Win_flush(new_iProc,bc_winl);
-	            //onesidecomm_bc += SuperLU_timer_() - t1;
                 BCcount[new_iProc] += 1;
+	            //onesidecomm_bc += SuperLU_timer_() - t1;
  		        //printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
 		        //fflush(stdout);
 	    } // for (iProc)

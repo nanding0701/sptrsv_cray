@@ -846,7 +846,7 @@ extern void   	BcTree_Destroy(BcTree Tree, char precision);
 extern void 	BcTree_SetTag(BcTree Tree, int tag, char precision);
 extern yes_no_t BcTree_IsRoot(BcTree Tree, char precision);
 #ifdef oneside
-unsigned int calcul_hash(const void* buffer, size_t length);
+unsigned long long calcul_hash(const void* buffer, size_t length);
 extern void 	BcTree_forwardMessageOneSide(BcTree Tree, double* localBuffer, int msgSize, char precision, int* BClocal_buf_id, int* BCcount, long* BCbase, int* maxrecvsz, int Pc ,double* sendbufval);
 extern void 	RdTree_forwardMessageOneSide(RdTree Tree, double* localBuffer, int msgSize, char precision, int* RDlocal_buf_id, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double* sendbufval);
 extern void 	BcTree_forwardMessageOneSideU(BcTree Tree, double* localBuffer, int msgSize, char precision, int* BClocal_buf_id, int* BCcount, long* BCbase, int* maxrecvsz, int Pc ,double* sendbufval);

@@ -50,7 +50,7 @@ namespace SuperLU_ASYNCOMM {
 #ifdef oneside
   template< typename T> 
     inline void TreeReduce_slu<T>::forwardMessageOneSide(T * locBuffer, Int msgSize, int* iam_row, int* RDcount, long* RDbase, int* maxrecvsz, int Pc){
-	    double t1;
+	    //double t1;
         long RDsendoffset=0;
         Int new_iProc;
         //Int new_msgSize = msgSize + 1;
