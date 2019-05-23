@@ -1438,8 +1438,8 @@ if(Llu->inv == 1){
 				}
 
 			}
-    double t100;
-    t100= SuperLU_timer_();
+    //double t100;
+    //t100= SuperLU_timer_();
 
 			for (i=0;i<nleaf_send;i++){
 				lk = leaf_send[i*aln_i];
@@ -1462,7 +1462,7 @@ if(Llu->inv == 1){
 #endif 
 				}
 			}
-               onesidecomm_bc += SuperLU_timer_() - t100;
+               //onesidecomm_bc += SuperLU_timer_() - t100;
 
 
 #ifdef USE_VTUNE
@@ -1478,6 +1478,7 @@ if(Llu->inv == 1){
         thread_id = 0;
             //t100= SuperLU_timer_();
         if (totalsolveBC < nfrecvx){
+            //foMPI_Win_flush_all(bc_winl);
 	        shift=0;
             for (bcidx=0;bcidx<Pr && validBCQindex[bcidx]!=-1;bcidx++){
 
@@ -1513,8 +1514,8 @@ if(Llu->inv == 1){
                 //if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs;
                 myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
-                //printf("bcbc--333--k=%lf, size=%d,checksum=%llu, myhash=%lf,should be %lf / %llu \n",recvbuf0[0], checkend, calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend), myhash, recvbuf0[XK_H-1], (unsigned long long)recvbuf0[XK_H-1]);
-                //fflush(stdout);
+                ////printf("bcbc--333--k=%lf, size=%d,checksum=%llu, myhash=%lf,should be %lf / %llu \n",recvbuf0[0], checkend, calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend), myhash, recvbuf0[XK_H-1], (unsigned long long)recvbuf0[XK_H-1]);
+                ////fflush(stdout);
                 if((myhash-recvbuf0[XK_H-1])!=0.0) {
                 //if((recvbuf0[checkend-1]-recvbuf0[XK_H-1])!=0.0) {
                     if(shift>0){
@@ -1584,6 +1585,7 @@ if(Llu->inv == 1){
         } 
        
     if (totalsolveRD < nfrecvmod){
+       //foMPI_Win_flush_all(rd_winl);
         shift=0;
        //for (rdidx=0;rdidx<Pc ;rdidx++){
        for (rdidx=0;rdidx<Pc && validRDQindex[rdidx]!=-1;rdidx++){
@@ -1608,14 +1610,14 @@ if(Llu->inv == 1){
                 lk = LBi( k, grid );
                 
                 checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs;
-                //crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                ////crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
                 myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
-                //printf("rdrd--333--iam=%d, checksum=%lf,should be %lf\n",iam, sum, recvbuf0[LSUM_H-1]);
-                //fflush(stdout);
-                
-                //if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
-               // if((recvbuf0[checkend-1]-recvbuf0[LSUM_H-1])!=0.0) {
-                //if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
+                ////printf("rdrd--333--iam=%d, checksum=%lf,should be %lf\n",iam, sum, recvbuf0[LSUM_H-1]);
+                ////fflush(stdout);
+                //
+                ////if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
+               //// if((recvbuf0[checkend-1]-recvbuf0[LSUM_H-1])!=0.0) {
+                ////if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
                 if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
@@ -1781,7 +1783,6 @@ if(Llu->inv == 1){
         }
         nfrecv1 = totalsolveBC + totalsolveRD;
                //onesidecomm_bc += SuperLU_timer_() - t100;
-       //foMPI_Win_flush_all(rd_winl);
 }// outer-most while 
 
 //printf("Iam %d OUT!!!\n",iam);
@@ -2509,6 +2510,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
     thread_id=0;
     if (totalsolveBC < nbrecvx){
 	    shift=0;
+       //foMPI_Win_flush_all(bc_winl);
         //for (int debug=0;debug<Pr; debug++){
             //printf("iam=%d,count=%d,validBCQindex[%d]=%d\n",iam,debug_count,debug,validBCQindex_u[debug]);
             //fflush(stdout);
@@ -2537,14 +2539,14 @@ while(nbrecv1< nbrecvx+nbrecvmod){
            
             //if (totalsolveBC % 10 == 0){
             checkend=BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs;
-            //crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
-            //printf("bcbc--222--iam=%d, checksum=%lf,should be %lf\n",iam, recvbuf0[checkend-1], recvbuf0[XK_H-1]);
-            //fflush(stdout);
+            ////crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
+            ////printf("bcbc--222--iam=%d, checksum=%lf,should be %lf\n",iam, recvbuf0[checkend-1], recvbuf0[XK_H-1]);
+            ////fflush(stdout);
             myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
-            
+            //
             if((myhash-recvbuf0[XK_H-1])!=0.0) {
-            //if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
-            //if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
+            ////if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
+            ////if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
                if(shift>0){
                     validBCQindex_u[bcidx-shift]=validBCQindex_u[bcidx];
                     validBCQindex_u[bcidx]=-1;
@@ -2596,6 +2598,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 
     if (totalsolveRD < nbrecvmod){
         shift=0;
+       //foMPI_Win_flush_all(rd_winl);
        for (rdidx=0;rdidx<Pc && validRDQindex_u[rdidx]!=-1;rdidx++){
                 
                 recvRankNum=validRDQindex_u[rdidx];  //bcidx; //validBCQindex[bcidx];
@@ -2614,22 +2617,22 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 lk = LBi( k, grid );
                 //if (totalsolveRD %10 == 0){ 
                 checkend=RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs;
-                //crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
-	            //crc_32_val = 0xffffffffL;
-                //for (int tmp=0; tmp<checkend; ++tmp){
-                //    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
-                //    //if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
-                //}
-                //printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
-                //fflush(stdout);
-                //if(abs(checksum-recvbuf0[checkend])<0.00000001) {
-                //if((uint16_t)crc_16_val!=(uint16_t)recvbuf0[checkend]) {
-                //if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
-                //if((int)checksum!=(int)recvbuf0[checkend]) {
-                //if(abs(checksum-recvbuf0[checkend])!=0) {
+                ////crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+	            ////crc_32_val = 0xffffffffL;
+                ////for (int tmp=0; tmp<checkend; ++tmp){
+                ////    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
+                ////    //if(!isnan(recvbuf0[tmp])) checksum += recvbuf0[tmp];
+                ////}
+                ////printf("bcbc--222--iam=%d, checksum=%f,should be %f\n",iam,checksum,recvbuf0[checkend]);
+                ////fflush(stdout);
+                ////if(abs(checksum-recvbuf0[checkend])<0.00000001) {
+                ////if((uint16_t)crc_16_val!=(uint16_t)recvbuf0[checkend]) {
+                ////if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
+                ////if((int)checksum!=(int)recvbuf0[checkend]) {
+                ////if(abs(checksum-recvbuf0[checkend])!=0) {
                 myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
             
-                //if(myhash!=(unsigned int)recvbuf0[LSUM_H-1]) {
+                ////if(myhash!=(unsigned int)recvbuf0[LSUM_H-1]) {
                 if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
                 //if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
                    if(shift>0){
