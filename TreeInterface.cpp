@@ -102,8 +102,8 @@ namespace SuperLU_ASYNCOMM{
 	void BcTree_forwardMessageOneSide(BcTree Tree, double* localBuffer, Int msgSize, char precision, int* iam_col, int* BCcount, long* BCbase, int* maxrecvsz, int Pc, double *sendbufval){
 		if(precision=='d'){
 			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
-	 		double t1;
-            t1 = SuperLU_timer_();
+	 		//double t1;
+            //t1 = SuperLU_timer_();
             //printf("k=%lf,sum=%lf\n", localBuffer[0], localBuffer[XK_H-1]);
             //fflush(stdout);
             
@@ -116,7 +116,7 @@ namespace SuperLU_ASYNCOMM{
             //}
             //localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
             BcastTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
-	        onesidecomm_bc += SuperLU_timer_() - t1;
+	        //onesidecomm_bc += SuperLU_timer_() - t1;
 		}
 		if(precision=='z'){
 			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
@@ -146,15 +146,15 @@ namespace SuperLU_ASYNCOMM{
 		        TreeReduce_slu<double>* ReduceTree = (TreeReduce_slu<double>*) Tree;
                 //////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
                 //////fflush(stdout);
-	 		    double t1;
-                t1 = SuperLU_timer_();
+	 		    //double t1;
+                //t1 = SuperLU_timer_();
                 //printf("k=%lf,sum=%lf\n", localBuffer[0], localBuffer[LSUM_H-1]);
                 //fflush(stdout);
                 //localBuffer[LSUM_H-1]=localBuffer[msgSize-1] ;//calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
                 localBuffer[LSUM_H-1]=calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
                 //localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
 		        ReduceTree->forwardMessageOneSide((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
-		        onesidecomm_bc += SuperLU_timer_() - t1;
+		        //onesidecomm_bc += SuperLU_timer_() - t1;
         }
 		if(precision=='z'){
 		    TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
