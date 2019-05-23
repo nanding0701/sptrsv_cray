@@ -204,7 +204,8 @@ namespace SuperLU_ASYNCOMM {
                 //foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
                 //foMPI_Win_flush(new_iProc,bc_winl);
                 BCcount[new_iProc] += 1;
-	            //onesidecomm_bc += SuperLU_timer_() - t1;
+	            foMPI_Win_flush_all(bc_winl);
+                //onesidecomm_bc += SuperLU_timer_() - t1;
  		        //printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
 		        //fflush(stdout);
 	    } // for (iProc)
