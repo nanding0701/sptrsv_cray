@@ -107,16 +107,16 @@ namespace SuperLU_ASYNCOMM{
             //printf("k=%lf,sum=%lf\n", localBuffer[0], localBuffer[XK_H-1]);
             //fflush(stdout);
             
-            localBuffer[XK_H-1] = calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+            //localBuffer[XK_H-1] = calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
             //localBuffer[XK_H-1] = localBuffer[msgSize-1];//calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
             //if (localBuffer[XK_H-1] == calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H))){
             //
             //printf("EUQAL!!!! k=%lf,size=%d,sum=%lf, realwum=%llu\n",localBuffer[0],msgSize-XK_H, localBuffer[XK_H-1], calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H)));
             //fflush(stdout);
             //}
-            //localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
-            BcastTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
+            localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
 	        //onesidecomm_bc += SuperLU_timer_() - t1;
+            BcastTree->forwardMessageOneSide((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
 		}
 		if(precision=='z'){
 			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
@@ -124,22 +124,22 @@ namespace SuperLU_ASYNCOMM{
 		}	
 	}
 
-	void BcTree_forwardMessageOneSideU(BcTree Tree, double* localBuffer, Int msgSize, char precision, int* iam_col, int* BCcount, long* BCbase, int* maxrecvsz, int Pc, double *sendbufval){
-		if(precision=='d'){
-			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
-	 		//double t1;
-            //t1 = SuperLU_timer_();
-            //localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
-            localBuffer[XK_H-1] = calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
-            //localBuffer[XK_H-1] = localBuffer[msgSize-1];//calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
-            BcastTree->forwardMessageOneSideU((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
-	        //onesidecomm_bc += SuperLU_timer_() - t1;
-		}
-		if(precision=='z'){
-			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
-			BcastTree->forwardMessageOneSide((doublecomplex*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
-		}	
-	}
+//	void BcTree_forwardMessageOneSideU(BcTree Tree, double* localBuffer, Int msgSize, char precision, int* iam_col, int* BCcount, long* BCbase, int* maxrecvsz, int Pc, double *sendbufval){
+//		if(precision=='d'){
+//			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
+//	 		//double t1;
+//            //t1 = SuperLU_timer_();
+//            //localBuffer[XK_H-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+//            localBuffer[XK_H-1] = calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+//            //localBuffer[XK_H-1] = localBuffer[msgSize-1];//calcul_hash(&localBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+//            BcastTree->forwardMessageOneSideU((double*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
+//	        //onesidecomm_bc += SuperLU_timer_() - t1;
+//		}
+//		if(precision=='z'){
+//			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
+//			BcastTree->forwardMessageOneSide((doublecomplex*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
+//		}	
+//	}
 	
     void RdTree_forwardMessageOneSide(RdTree Tree, double* localBuffer, Int msgSize, char precision, int* iam_row, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double *sendbufval){
 		if(precision=='d'){
@@ -151,10 +151,10 @@ namespace SuperLU_ASYNCOMM{
                 //printf("k=%lf,sum=%lf\n", localBuffer[0], localBuffer[LSUM_H-1]);
                 //fflush(stdout);
                 //localBuffer[LSUM_H-1]=localBuffer[msgSize-1] ;//calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-                localBuffer[LSUM_H-1]=calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-                //localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-		        ReduceTree->forwardMessageOneSide((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
+                //localBuffer[LSUM_H-1]=calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
 		        //onesidecomm_bc += SuperLU_timer_() - t1;
+                localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
+		        ReduceTree->forwardMessageOneSide((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
         }
 		if(precision=='z'){
 		    TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
@@ -162,24 +162,24 @@ namespace SuperLU_ASYNCOMM{
 		}
 	}
 
-    void RdTree_forwardMessageOneSideU(RdTree Tree, double* localBuffer, Int msgSize, char precision, int* iam_row, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double *sendbufval){
-		if(precision=='d'){
-		        TreeReduce_slu<double>* ReduceTree = (TreeReduce_slu<double>*) Tree;
-                //////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
-                //////fflush(stdout);
-	 		    //double t1;
-                //t1 = SuperLU_timer_();
-                //localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-                //localBuffer[LSUM_H-1]= localBuffer[msgSize-1];//calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-                localBuffer[LSUM_H-1]=calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
-		        ReduceTree->forwardMessageOneSideU((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
-		        //onesidecomm_bc += SuperLU_timer_() - t1;
-        }
-		if(precision=='z'){
-		    TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
-		    ReduceTree->forwardMessageOneSide((doublecomplex*)localBuffer,msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
-		}
-	}
+//    void RdTree_forwardMessageOneSideU(RdTree Tree, double* localBuffer, Int msgSize, char precision, int* iam_row, int* RDcount, long* RDbase, int* maxrecvsz, int Pc, double *sendbufval){
+//		if(precision=='d'){
+//		        TreeReduce_slu<double>* ReduceTree = (TreeReduce_slu<double>*) Tree;
+//                //////printf("\n HERE!!! send=%lf,%lf,loc=%lf\n",sendbufval[0],sendbufval[msgSize],checksum);
+//                //////fflush(stdout);
+//	 		    //double t1;
+//                //t1 = SuperLU_timer_();
+//                //localBuffer[LSUM_H-1]=crc_16((unsigned char*)&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
+//                //localBuffer[LSUM_H-1]= localBuffer[msgSize-1];//calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
+//                localBuffer[LSUM_H-1]=calcul_hash(&localBuffer[LSUM_H],sizeof(double)*(msgSize-LSUM_H));
+//		        ReduceTree->forwardMessageOneSideU((double*)localBuffer, msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
+//		        //onesidecomm_bc += SuperLU_timer_() - t1;
+//        }
+//		if(precision=='z'){
+//		    TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
+//		    ReduceTree->forwardMessageOneSide((doublecomplex*)localBuffer,msgSize, iam_row, RDcount, RDbase, maxrecvsz, Pc);	
+//		}
+//	}
 
 #endif
 	void BcTree_forwardMessageSimple(BcTree Tree, void* localBuffer, Int msgSize, char precision){
