@@ -1489,16 +1489,6 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
             j += 1;
         }    
      }
-
-	//BC_buffer_size=(1+BC_buffer_size)*maxrecvsz;
-    //printf("iam=%d, BC_buffer_size_new=%d\n",iam,BC_buffer_size);
-    //fflush(stdout);
-    //BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));
-    //for(i=0; i<BC_buffer_size; i++){
-    //        BC_taskq[i] = -1.00;
-    //}
-    //foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
-
 #endif
 
 #if ( PROFlevel>=1 )

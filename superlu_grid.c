@@ -74,8 +74,8 @@ void superlu_gridmap(
     
     /* Create datatype in C for MPI complex. */
     if ( SuperLU_MPI_DOUBLE_COMPLEX == MPI_DATATYPE_NULL ) {
-	MPI_Type_contiguous( 2, MPI_DOUBLE, &SuperLU_MPI_DOUBLE_COMPLEX );
-	MPI_Type_commit( &SuperLU_MPI_DOUBLE_COMPLEX );
+	    MPI_Type_contiguous( 2, MPI_DOUBLE, &SuperLU_MPI_DOUBLE_COMPLEX );
+	    MPI_Type_commit( &SuperLU_MPI_DOUBLE_COMPLEX );
     }
 
     /* Check MPI environment initialization. */

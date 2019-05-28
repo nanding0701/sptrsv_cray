@@ -192,6 +192,7 @@ namespace SuperLU_ASYNCOMM {
 	    //double t1;
         long BCsendoffset=0;
         Int new_iProc;
+        Int flag=0;
         //Int new_msgSize = msgSize +1;
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
                 Int iProc = this->myDests_[idxRecv];
@@ -199,6 +200,10 @@ namespace SuperLU_ASYNCOMM {
 		        new_iProc = iProc/Pc;
                 BCsendoffset = BCbase[new_iProc] + BCcount[new_iProc]*(*maxrecvsz);
                 //foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, bc_winl);		  
+                //if ((flag==0) && (BCcount[new_iProc]-(BCcount[new_iProc]/2)*2 == 0) ){
+                //    locBuffer[XK_H-1] = crc_16((unsigned char*)&locBuffer[XK_H],sizeof(double)*(msgSize-XK_H));
+                //    flag=1;
+                //}
                 foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, msgSize, MPI_DOUBLE,bc_winl);
                 //foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, msgSize, this->type_,bc_winl);
                 //foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);

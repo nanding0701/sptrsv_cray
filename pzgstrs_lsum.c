@@ -1016,7 +1016,15 @@ void zlsum_fmod_inv_master
  int_t recurlevel,
  int_t maxsuper,
  int thread_id,
- int num_thread
+ int num_thread,
+ int* iam_row,
+ int* RDcount, 
+ long* RDbase, 
+ int* iam_col, 
+ int* BCcount, 
+ long* BCbase, 
+ int Pc, 
+ int maxrecvsz
 )
 {
     doublecomplex alpha = {1.0, 0.0}, beta = {0.0, 0.0},malpha={-1.0, 0.0};
@@ -1283,9 +1291,12 @@ void zlsum_fmod_inv_master
 							z_add(&lsum[il + jj ],
 								  &lsum[il + jj ],
 								  &lsum[il + jj + ii*sizelsum]);
-
-					RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'z')*nrhs+LSUM_H,'z');
-					// }
+#ifdef oneside
+					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'z')*nrhs+LSUM_H,'z',iam_row, RDcount, RDbase, &maxrecvsz, Pc);
+#else
+                    RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'z')*nrhs+LSUM_H,'z');
+#endif
+                    // }
 
 
 				} else { /* Diagonal process: X[i] += lsum[i]. */
@@ -1380,8 +1391,11 @@ void zlsum_fmod_inv_master
 					 */
 
 					if(LBtree_ptr[lk]!=NULL)
-						BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'z')*nrhs+XK_H,'z');
-
+#ifdef oneside						
+						BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'z')*nrhs+XK_H,'z',iam_col, BCcount, BCbase, &maxrecvsz, Pc);
+#else						
+                        BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'z')*nrhs+XK_H,'z');
+#endif
 					/*
 					 * Perform local block modifications.
 					 */
@@ -1395,7 +1409,8 @@ void zlsum_fmod_inv_master
 
 						zlsum_fmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, iknsupc, ik,
 								fmod, nlb1, xsup,
-								grid, Llu, stat,sizelsum,sizertemp,1+recurlevel,maxsuper,thread_id,num_thread);
+								grid, Llu, stat,sizelsum,sizertemp,1+recurlevel,maxsuper,thread_id,num_thread,
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc,maxrecvsz);
 					}		   
 
 					// } /* if frecv[lk] == 0 */
@@ -1928,7 +1943,15 @@ void zlsum_bmod_inv_master
  int_t sizelsum,
  int_t sizertemp,
  int thread_id,
- int num_thread
+ int num_thread,
+ int* iam_row,
+ int* RDcount, 
+ long* RDbase, 
+ int* iam_col, 
+ int* BCcount, 
+ long* BCbase, 
+ int Pc, 
+ int maxrecvsz
  )
 {
 	/*
@@ -2125,8 +2148,11 @@ void zlsum_bmod_inv_master
 						z_add(&lsum[il + jj ],
 							  &lsum[il + jj ],
 							  &lsum[il + jj + ii*sizelsum]);
-				RdTree_forwardMessageSimple(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'z')*nrhs+LSUM_H,'z');
-
+#ifdef oneside				
+                RdTree_forwardMessageOneSide(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'z')*nrhs+LSUM_H,'z',iam_row, RDcount, RDbase, &maxrecvsz, Pc);
+#else				
+                RdTree_forwardMessageSimple(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'z')*nrhs+LSUM_H,'z');
+#endif
 #if ( DEBUGlevel>=2 )
 				printf("(%2d) Sent LSUM[%2.0f], size %2d, to P %2d\n",
 						iam, lsum[il-LSUM_H], iknsupc*nrhs+LSUM_H, p);
@@ -2218,8 +2244,12 @@ void zlsum_bmod_inv_master
 						// fflush(stdout);
 					// }
 					if(UBtree_ptr[lk1]!=NULL){
-					BcTree_forwardMessageSimple(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'z')*nrhs+XK_H,'z'); 
-					} 
+#ifdef oneside					
+                        BcTree_forwardMessageOneSide(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'z')*nrhs+XK_H,'z',iam_col, BCcount, BCbase, &maxrecvsz, Pc); 
+#else					
+                        BcTree_forwardMessageSimple(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'z')*nrhs+XK_H,'z'); 
+#endif
+                    } 
 
 					/*
 					 * Perform local block modifications.
@@ -2231,7 +2261,8 @@ void zlsum_bmod_inv_master
 						{
 						zlsum_bmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, gik, bmod, Urbs,Urbs2,
 								Ucb_indptr, Ucb_valptr, xsup, grid, Llu,
-								send_req, stat, sizelsum,sizertemp,thread_id,num_thread);
+								send_req, stat, sizelsum,sizertemp,thread_id,num_thread,
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc, maxrecvsz);
 						}
 					}
 				// } /* if brecv[ik] == 0 */

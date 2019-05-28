@@ -23,6 +23,6 @@ extern int *recv_size_all;
 extern int *recv_size_all_u;
 extern double* BC_taskq;
 extern double* RD_taskq;
-extern double* BC_taskq_u;
-extern double* RD_taskq_u;
+//extern doublecomplex* BC_taskq_z;
+//extern doublecomplex* RD_taskq_z;
 //extern double *onesidedgemm;

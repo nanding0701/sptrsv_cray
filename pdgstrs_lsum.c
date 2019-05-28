@@ -995,8 +995,7 @@ void dlsum_fmod_inv_master
  int* BCcount, 
  long* BCbase, 
  int Pc, 
- int maxrecvsz,
- double *sendbufval
+ int maxrecvsz
 )
 {
     double alpha = 1.0, beta = 0.0,malpha=-1.0;
@@ -1079,91 +1078,91 @@ void dlsum_fmod_inv_master
 
 		assert(m>0);
 				
-//		if(m>4*maxsuper || nrhs>10){ 
-//			// if(m<1){
-//			// TIC(t1);
-//			Nchunk=num_thread;
-//			nlb_loc = floor(((double)nlb)/Nchunk);
-//			remainder = nlb % Nchunk;
-//
-//#ifdef _OPENMP
-//#pragma	omp	taskloop private (lptr1,luptr1,nlb1,thread_id1,lsub1,lusup1,nsupr1,Linv,nn,lbstart,lbend,luptr_tmp1,nbrow,lb,lptr1_tmp,rtemp_loc,nbrow_ref,lptr,nbrow1,ik,rel,lk,iknsupc,il,i,irow,fmod_tmp,ikcol,p,ii,jj,t1,t2,j) untied
-//#endif	
-//			for (nn=0;nn<Nchunk;++nn){
-//
-//#ifdef _OPENMP				 
-//				thread_id1 = omp_get_thread_num ();
-//#else
-//				thread_id1 = 0;
-//#endif		
-//				rtemp_loc = &rtemp[sizertemp* thread_id1];
-//
-//				if(nn<remainder){
-//					lbstart = nn*(nlb_loc+1);
-//					lbend = (nn+1)*(nlb_loc+1);
-//				}else{
-//					lbstart = remainder+nn*nlb_loc;
-//					lbend = remainder + (nn+1)*nlb_loc;
-//				}
-//
-//				if(lbstart<lbend){
-//
-//#if ( PROFlevel>=1 )
-//					TIC(t1);
-//#endif				
-//					luptr_tmp1 = lloc[lbstart+idx_v];
-//					nbrow=0;
-//					for (lb = lbstart; lb < lbend; ++lb){ 		
-//						lptr1_tmp = lloc[lb+idx_i];		
-//						nbrow += lsub[lptr1_tmp+1];
-//					}
-//					
-//				#ifdef _CRAY
-//					SGEMM( ftcs2, ftcs2, &nbrow, &nrhs, &knsupc,
-//						  &alpha, &lusup[luptr_tmp1], &nsupr, xk,
-//						  &knsupc, &beta, rtemp_loc, &nbrow );
-//				#elif defined (USE_VENDOR_BLAS)
-//					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
-//						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
-//						   &knsupc, &beta, rtemp_loc, &nbrow, 1, 1 );
-//				#else
-//					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
-//						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
-//						   &knsupc, &beta, rtemp_loc, &nbrow );
-//				#endif
-//
-//					nbrow_ref=0;
-//					for (lb = lbstart; lb < lbend; ++lb){ 		
-//						lptr1_tmp = lloc[lb+idx_i];	
-//						lptr= lptr1_tmp+2;	
-//						nbrow1 = lsub[lptr1_tmp+1];
-//						ik = lsub[lptr1_tmp]; /* Global block number, row-wise. */
-//						rel = xsup[ik]; /* Global row index of block ik. */
-//	
-//						lk = LBi( ik, grid ); /* Local block number, row-wise. */	
-//
-//						iknsupc = SuperSize( ik );
-//						il = LSUM_BLK( lk );
-//
-//						RHS_ITERATE(j)	
-//							#ifdef _OPENMP	
-//								#pragma omp simd lastprivate(irow)
-//							#endif							
-//							for (i = 0; i < nbrow1; ++i) {
-//								irow = lsub[lptr+i] - rel; /* Relative row. */
-//								lsum[il+irow + j*iknsupc] -= rtemp_loc[nbrow_ref+i + j*nbrow];
-//							}
-//						nbrow_ref+=nbrow1;
-//					}
-//
-//#if ( PROFlevel>=1 )
-//					TOC(t2, t1);
-//					stat[thread_id1]->utime[SOL_GEMM] += t2;
-//#endif	
-//			}
-//		}
-//
-//		}else{ 
+		if(m>4*maxsuper || nrhs>10){ 
+			// if(m<1){
+			// TIC(t1);
+			Nchunk=num_thread;
+			nlb_loc = floor(((double)nlb)/Nchunk);
+			remainder = nlb % Nchunk;
+
+#ifdef _OPENMP
+#pragma	omp	taskloop private (lptr1,luptr1,nlb1,thread_id1,lsub1,lusup1,nsupr1,Linv,nn,lbstart,lbend,luptr_tmp1,nbrow,lb,lptr1_tmp,rtemp_loc,nbrow_ref,lptr,nbrow1,ik,rel,lk,iknsupc,il,i,irow,fmod_tmp,ikcol,p,ii,jj,t1,t2,j) untied
+#endif	
+			for (nn=0;nn<Nchunk;++nn){
+
+#ifdef _OPENMP				 
+				thread_id1 = omp_get_thread_num ();
+#else
+				thread_id1 = 0;
+#endif		
+				rtemp_loc = &rtemp[sizertemp* thread_id1];
+
+				if(nn<remainder){
+					lbstart = nn*(nlb_loc+1);
+					lbend = (nn+1)*(nlb_loc+1);
+				}else{
+					lbstart = remainder+nn*nlb_loc;
+					lbend = remainder + (nn+1)*nlb_loc;
+				}
+
+				if(lbstart<lbend){
+
+#if ( PROFlevel>=1 )
+					TIC(t1);
+#endif				
+					luptr_tmp1 = lloc[lbstart+idx_v];
+					nbrow=0;
+					for (lb = lbstart; lb < lbend; ++lb){ 		
+						lptr1_tmp = lloc[lb+idx_i];		
+						nbrow += lsub[lptr1_tmp+1];
+					}
+					
+				#ifdef _CRAY
+					SGEMM( ftcs2, ftcs2, &nbrow, &nrhs, &knsupc,
+						  &alpha, &lusup[luptr_tmp1], &nsupr, xk,
+						  &knsupc, &beta, rtemp_loc, &nbrow );
+				#elif defined (USE_VENDOR_BLAS)
+					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
+						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
+						   &knsupc, &beta, rtemp_loc, &nbrow, 1, 1 );
+				#else
+					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
+						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
+						   &knsupc, &beta, rtemp_loc, &nbrow );
+				#endif
+
+					nbrow_ref=0;
+					for (lb = lbstart; lb < lbend; ++lb){ 		
+						lptr1_tmp = lloc[lb+idx_i];	
+						lptr= lptr1_tmp+2;	
+						nbrow1 = lsub[lptr1_tmp+1];
+						ik = lsub[lptr1_tmp]; /* Global block number, row-wise. */
+						rel = xsup[ik]; /* Global row index of block ik. */
+	
+						lk = LBi( ik, grid ); /* Local block number, row-wise. */	
+
+						iknsupc = SuperSize( ik );
+						il = LSUM_BLK( lk );
+
+						RHS_ITERATE(j)	
+							#ifdef _OPENMP	
+								#pragma omp simd lastprivate(irow)
+							#endif							
+							for (i = 0; i < nbrow1; ++i) {
+								irow = lsub[lptr+i] - rel; /* Relative row. */
+								lsum[il+irow + j*iknsupc] -= rtemp_loc[nbrow_ref+i + j*nbrow];
+							}
+						nbrow_ref+=nbrow1;
+					}
+
+#if ( PROFlevel>=1 )
+					TOC(t2, t1);
+					stat[thread_id1]->utime[SOL_GEMM] += t2;
+#endif	
+			}
+		}
+
+		}else{ 
 {
 #if ( PROFlevel>=1 )
 			TIC(t1);
@@ -1261,7 +1260,7 @@ void dlsum_fmod_inv_master
 						for (jj=0;jj<iknsupc*nrhs;jj++)
 							lsum[il + jj ] += lsum[il + jj + ii*sizelsum];
 #ifdef oneside
-					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
+					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc);
 #else
                     RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d');
 #endif
@@ -1360,7 +1359,7 @@ void dlsum_fmod_inv_master
                         //}
                         //printf("\n");
                         //fflush(stdout);
-                        BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc, sendbufval);
+                        BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 #else						
                         BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d');
 #endif                    
@@ -1379,7 +1378,7 @@ void dlsum_fmod_inv_master
 						dlsum_fmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, iknsupc, ik,
 								fmod, nlb1, xsup,
 								grid, Llu, stat,sizelsum,sizertemp,1+recurlevel,maxsuper,thread_id,num_thread,
-                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc,maxrecvsz,sendbufval);
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc,maxrecvsz);
 					}		   
 
 					// } /* if frecv[lk] == 0 */
@@ -1896,8 +1895,7 @@ void dlsum_bmod_inv_master
  int* BCcount, 
  long* BCbase, 
  int Pc, 
- int maxrecvsz,
- double *sendbufval
+ int maxrecvsz
  )
 {
 	/*
@@ -2083,7 +2081,7 @@ void dlsum_bmod_inv_master
 					for (jj=0;jj<iknsupc*nrhs;jj++)
 						lsum[il + jj ] += lsum[il + jj + ii*sizelsum];
 #ifdef oneside				
-                RdTree_forwardMessageOneSide(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
+                RdTree_forwardMessageOneSide(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'d')*nrhs+LSUM_H,'d', iam_row, RDcount, RDbase, &maxrecvsz, Pc);
 #else				
                 RdTree_forwardMessageSimple(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'d')*nrhs+LSUM_H,'d');
 #endif
@@ -2174,7 +2172,7 @@ void dlsum_bmod_inv_master
 					// }
 					if(UBtree_ptr[lk1]!=NULL){
 #ifdef oneside					
-                        BcTree_forwardMessageOneSide(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc, sendbufval); 
+                        BcTree_forwardMessageOneSide(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'d')*nrhs+XK_H,'d',iam_col, BCcount, BCbase, &maxrecvsz, Pc); 
 #else					
                         BcTree_forwardMessageSimple(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'d')*nrhs+XK_H,'d'); 
 #endif
@@ -2191,7 +2189,7 @@ void dlsum_bmod_inv_master
 						dlsum_bmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, gik, bmod, Urbs,Urbs2,
 								Ucb_indptr, Ucb_valptr, xsup, grid, Llu,
 								send_req, stat, sizelsum,sizertemp,thread_id,num_thread,
-                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc, maxrecvsz, sendbufval);
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc, maxrecvsz);
 						}
 					}
 				// } /* if brecv[ik] == 0 */
