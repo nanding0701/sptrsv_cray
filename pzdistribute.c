@@ -335,8 +335,8 @@ int* BufSize_urd;
 int *validBCQindex_u;
 int *validRDQindex_u;
 int *recv_size_all_u;
-doublecomplex* BC_taskq;
-doublecomplex* RD_taskq;
+double* BC_taskq;
+double* RD_taskq;
 float
 pzdistribute(fact_t fact, int_t n, SuperMatrix *A,
 	     ScalePermstruct_t *ScalePermstruct,
@@ -2186,9 +2186,9 @@ if ( !iam) printf(".. Construct Reduce tree for U: %.2f\t\n", t);
 #ifdef oneside
     int maxrecvsz = sp_ienv_dist(3)* nrhs + SUPERLU_MAX( XK_H, LSUM_H ) + 1; 
     BC_buffer_size = maxrecvsz * ( (nfrecvx>nbrecvx?nfrecvx:nbrecvx) + 1 );
-    BC_taskq = (doublecomplex*)SUPERLU_MALLOC( BC_buffer_size * sizeof(doublecomplex));   // this needs to be optimized for 1D row mapping
+    BC_taskq = (double*)SUPERLU_MALLOC( 2*BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
     
-    for(i=0; i<BC_buffer_size; i++){
+    for(i=0; i<2*BC_buffer_size; i++){
             BC_taskq[i] = -1.00;
     }
     foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(doublecomplex), sizeof(doublecomplex), MPI_INFO_NULL, col_comm, &bc_winl);
@@ -2219,8 +2219,8 @@ if ( !iam) printf(".. Construct Reduce tree for U: %.2f\t\n", t);
     RD_buffer_size=((nfrecvmod>nbrecvmod?nfrecvmod:nbrecvmod)+1)*maxrecvsz;
     //printf("iam=%d, newRD_buffer_size=%d\n",iam,RD_buffer_size);
     //fflush(stdout);
-    RD_taskq = (doublecomplex*)SUPERLU_MALLOC( RD_buffer_size * sizeof(doublecomplex));   // this needs to be optimized for 1D row mapping
-    for(i=0; i<RD_buffer_size; i++){
+    RD_taskq = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
+    for(i=0; i<2*RD_buffer_size; i++){
             RD_taskq[i] = -1.0;
     }
 	foMPI_Win_create(RD_taskq, (RD_buffer_size)*sizeof(doublecomplex), sizeof(doublecomplex), MPI_INFO_NULL, row_comm, &rd_winl);

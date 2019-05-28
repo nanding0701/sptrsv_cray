@@ -121,7 +121,7 @@ namespace SuperLU_ASYNCOMM{
 		if(precision=='z'){
 			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
 			
-            (doublecomplex)localBuffer[XK_H-1].r = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(doublecomplex)*(msgSize-XK_H));
+            localBuffer[XK_H*2-1] = crc_16((unsigned char*)&localBuffer[XK_H],sizeof(doublecomplex)*(msgSize-XK_H));
             BcastTree->forwardMessageOneSide((doublecomplex*)localBuffer,msgSize, iam_col, BCcount, BCbase, maxrecvsz, Pc);	
 		}	
 	}

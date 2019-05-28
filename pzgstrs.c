@@ -1485,14 +1485,14 @@ if(Llu->inv == 1){
                 //t100= SuperLU_timer_();
                 if((BCis_solved[recvRankNum] - (BCis_solved[recvRankNum]/2)*2) == 0){
                     checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs;
-                    crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
+                    crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],2*sizeof(double)*checkend);
                     //printf("bcbc--333--iam=%d, checksum=%d,should be %d\n",iam, crc_16_val, (uint16_t)recvbuf0[XK_H-1]);
                     //fflush(stdout);
                     //myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
                     //onesidecomm_bc += SuperLU_timer_() - t100;
                     //if((myhash-recvbuf0[XK_H-1])!=0.0) {
                     //if((recvbuf0[checkend-1]-recvbuf0[XK_H-1])!=0.0) {
-                    if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
+                    if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1].r) {
                         if(shift>0){
                             validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                             validBCQindex[bcidx]=-1;
@@ -1588,13 +1588,13 @@ if(Llu->inv == 1){
                 //if(totalsolveRD mod 10==0){
                 if((RDis_solved[recvRankNum] - (RDis_solved[recvRankNum]/2)*2) == 0){
                     checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs;
-                    crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                    crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],2*sizeof(double)*checkend);
                     //myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
                     //onesidecomm_bc += SuperLU_timer_() - t100;
                     //printf("rdrd--333--iam=%d, checksum=%d,should be %lf\n",iam, crc_16_val, recvbuf0[LSUM_H-1]);
                     //fflush(stdout);
                     
-                    if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
+                    if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1].r) {
                     //if((recvbuf0[checkend-1]-recvbuf0[LSUM_H-1])!=0.0) {
                     //if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
                     //if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
@@ -2399,7 +2399,8 @@ for (i=0;i<nroot_send;i++){
 		/*
 		 * Compute the internal nodes asychronously by all processes.
 		 */
-
+#ifdef oneside
+#else
 #ifdef _OPENMP
 #pragma omp parallel default (shared) 
 #endif
@@ -2595,6 +2596,7 @@ for (i=0;i<nroot_send;i++){
 			}
 		} /* while not finished ... */
 	}
+    #endif
 #if ( PRNTlevel>=1 )
 		t = SuperLU_timer_() - t;
 		stat->utime[SOL_TOT] += t;

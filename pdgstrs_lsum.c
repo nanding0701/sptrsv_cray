@@ -1078,91 +1078,91 @@ void dlsum_fmod_inv_master
 
 		assert(m>0);
 				
-		if(m>4*maxsuper || nrhs>10){ 
-			// if(m<1){
-			// TIC(t1);
-			Nchunk=num_thread;
-			nlb_loc = floor(((double)nlb)/Nchunk);
-			remainder = nlb % Nchunk;
-
-#ifdef _OPENMP
-#pragma	omp	taskloop private (lptr1,luptr1,nlb1,thread_id1,lsub1,lusup1,nsupr1,Linv,nn,lbstart,lbend,luptr_tmp1,nbrow,lb,lptr1_tmp,rtemp_loc,nbrow_ref,lptr,nbrow1,ik,rel,lk,iknsupc,il,i,irow,fmod_tmp,ikcol,p,ii,jj,t1,t2,j) untied
-#endif	
-			for (nn=0;nn<Nchunk;++nn){
-
-#ifdef _OPENMP				 
-				thread_id1 = omp_get_thread_num ();
-#else
-				thread_id1 = 0;
-#endif		
-				rtemp_loc = &rtemp[sizertemp* thread_id1];
-
-				if(nn<remainder){
-					lbstart = nn*(nlb_loc+1);
-					lbend = (nn+1)*(nlb_loc+1);
-				}else{
-					lbstart = remainder+nn*nlb_loc;
-					lbend = remainder + (nn+1)*nlb_loc;
-				}
-
-				if(lbstart<lbend){
-
-#if ( PROFlevel>=1 )
-					TIC(t1);
-#endif				
-					luptr_tmp1 = lloc[lbstart+idx_v];
-					nbrow=0;
-					for (lb = lbstart; lb < lbend; ++lb){ 		
-						lptr1_tmp = lloc[lb+idx_i];		
-						nbrow += lsub[lptr1_tmp+1];
-					}
-					
-				#ifdef _CRAY
-					SGEMM( ftcs2, ftcs2, &nbrow, &nrhs, &knsupc,
-						  &alpha, &lusup[luptr_tmp1], &nsupr, xk,
-						  &knsupc, &beta, rtemp_loc, &nbrow );
-				#elif defined (USE_VENDOR_BLAS)
-					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
-						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
-						   &knsupc, &beta, rtemp_loc, &nbrow, 1, 1 );
-				#else
-					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
-						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
-						   &knsupc, &beta, rtemp_loc, &nbrow );
-				#endif
-
-					nbrow_ref=0;
-					for (lb = lbstart; lb < lbend; ++lb){ 		
-						lptr1_tmp = lloc[lb+idx_i];	
-						lptr= lptr1_tmp+2;	
-						nbrow1 = lsub[lptr1_tmp+1];
-						ik = lsub[lptr1_tmp]; /* Global block number, row-wise. */
-						rel = xsup[ik]; /* Global row index of block ik. */
-	
-						lk = LBi( ik, grid ); /* Local block number, row-wise. */	
-
-						iknsupc = SuperSize( ik );
-						il = LSUM_BLK( lk );
-
-						RHS_ITERATE(j)	
-							#ifdef _OPENMP	
-								#pragma omp simd lastprivate(irow)
-							#endif							
-							for (i = 0; i < nbrow1; ++i) {
-								irow = lsub[lptr+i] - rel; /* Relative row. */
-								lsum[il+irow + j*iknsupc] -= rtemp_loc[nbrow_ref+i + j*nbrow];
-							}
-						nbrow_ref+=nbrow1;
-					}
-
-#if ( PROFlevel>=1 )
-					TOC(t2, t1);
-					stat[thread_id1]->utime[SOL_GEMM] += t2;
-#endif	
-			}
-		}
-
-		}else{ 
+//		if(m>4*maxsuper || nrhs>10){ 
+//			// if(m<1){
+//			// TIC(t1);
+//			Nchunk=num_thread;
+//			nlb_loc = floor(((double)nlb)/Nchunk);
+//			remainder = nlb % Nchunk;
+//
+//#ifdef _OPENMP
+//#pragma	omp	taskloop private (lptr1,luptr1,nlb1,thread_id1,lsub1,lusup1,nsupr1,Linv,nn,lbstart,lbend,luptr_tmp1,nbrow,lb,lptr1_tmp,rtemp_loc,nbrow_ref,lptr,nbrow1,ik,rel,lk,iknsupc,il,i,irow,fmod_tmp,ikcol,p,ii,jj,t1,t2,j) untied
+//#endif	
+//			for (nn=0;nn<Nchunk;++nn){
+//
+//#ifdef _OPENMP				 
+//				thread_id1 = omp_get_thread_num ();
+//#else
+//				thread_id1 = 0;
+//#endif		
+//				rtemp_loc = &rtemp[sizertemp* thread_id1];
+//
+//				if(nn<remainder){
+//					lbstart = nn*(nlb_loc+1);
+//					lbend = (nn+1)*(nlb_loc+1);
+//				}else{
+//					lbstart = remainder+nn*nlb_loc;
+//					lbend = remainder + (nn+1)*nlb_loc;
+//				}
+//
+//				if(lbstart<lbend){
+//
+//#if ( PROFlevel>=1 )
+//					TIC(t1);
+//#endif				
+//					luptr_tmp1 = lloc[lbstart+idx_v];
+//					nbrow=0;
+//					for (lb = lbstart; lb < lbend; ++lb){ 		
+//						lptr1_tmp = lloc[lb+idx_i];		
+//						nbrow += lsub[lptr1_tmp+1];
+//					}
+//					
+//				#ifdef _CRAY
+//					SGEMM( ftcs2, ftcs2, &nbrow, &nrhs, &knsupc,
+//						  &alpha, &lusup[luptr_tmp1], &nsupr, xk,
+//						  &knsupc, &beta, rtemp_loc, &nbrow );
+//				#elif defined (USE_VENDOR_BLAS)
+//					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
+//						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
+//						   &knsupc, &beta, rtemp_loc, &nbrow, 1, 1 );
+//				#else
+//					dgemm_( "N", "N", &nbrow, &nrhs, &knsupc,
+//						   &alpha, &lusup[luptr_tmp1], &nsupr, xk,
+//						   &knsupc, &beta, rtemp_loc, &nbrow );
+//				#endif
+//
+//					nbrow_ref=0;
+//					for (lb = lbstart; lb < lbend; ++lb){ 		
+//						lptr1_tmp = lloc[lb+idx_i];	
+//						lptr= lptr1_tmp+2;	
+//						nbrow1 = lsub[lptr1_tmp+1];
+//						ik = lsub[lptr1_tmp]; /* Global block number, row-wise. */
+//						rel = xsup[ik]; /* Global row index of block ik. */
+//	
+//						lk = LBi( ik, grid ); /* Local block number, row-wise. */	
+//
+//						iknsupc = SuperSize( ik );
+//						il = LSUM_BLK( lk );
+//
+//						RHS_ITERATE(j)	
+//							#ifdef _OPENMP	
+//								#pragma omp simd lastprivate(irow)
+//							#endif							
+//							for (i = 0; i < nbrow1; ++i) {
+//								irow = lsub[lptr+i] - rel; /* Relative row. */
+//								lsum[il+irow + j*iknsupc] -= rtemp_loc[nbrow_ref+i + j*nbrow];
+//							}
+//						nbrow_ref+=nbrow1;
+//					}
+//
+//#if ( PROFlevel>=1 )
+//					TOC(t2, t1);
+//					stat[thread_id1]->utime[SOL_GEMM] += t2;
+//#endif	
+//			}
+//		}
+//
+//		}else{ 
 {
 #if ( PROFlevel>=1 )
 			TIC(t1);
