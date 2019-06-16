@@ -308,11 +308,11 @@ extern void dlsum_fmod_inv_master(double *, double *, double *, double *,
 		       int, int, int_t , int_t *, int_t, 
 		       int_t *, gridinfo_t *, LocalLU_t *, 
 		       SuperLUStat_t **, int_t, int_t, int_t, int_t, int, int,
-		       int*, int*, long*, int*, int*, long*, int,int,double*);
+		       int*, int*, long*, int*, int*, long*, int,int);
 extern void dlsum_bmod_inv_master(double *, double *, double *, double *,
                        int, int_t, int_t *, int_t *, int_t *, Ucb_indptr_t **,
                        int_t **, int_t *, gridinfo_t *, LocalLU_t *,
-		       MPI_Request [], SuperLUStat_t **, int_t, int_t, int, int, int*, int*, long*, int*, int*, long*, int,int, double*);			   
+		       MPI_Request [], SuperLUStat_t **, int_t, int_t, int, int, int*, int*, long*, int*, int*, long*, int,int);			   
 #else
 extern float pddistribute(fact_t, int_t, SuperMatrix *, 
 			 ScalePermstruct_t *, Glu_freeable_t *, 

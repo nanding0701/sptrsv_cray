@@ -58,6 +58,8 @@ namespace SuperLU_ASYNCOMM {
             //t1 = SuperLU_timer_();
 		    Int iProc = this->myRoot_;
 		    new_iProc = iProc%Pc;
+            msgSize = msgSize * 2;
+            *maxrecvsz = *maxrecvsz * 2;
 		    RDsendoffset = RDbase[new_iProc] + RDcount[new_iProc]*(*maxrecvsz);
  		    
             //printf("I am %d, row_id %d, send to world rank %d/%d, RDcount[%d]=%d, RDbase[%d]=%ld,RDsendoffset=%ld, maxrecvsz=%d\n",iam, *iam_row, iProc, new_iProc, new_iProc, RDcount[new_iProc], new_iProc, RDbase[new_iProc], RDsendoffset, *maxrecvsz);

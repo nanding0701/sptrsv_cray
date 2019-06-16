@@ -958,12 +958,6 @@ pdgstrs(int_t n, LUstruct_t *LUstruct,
     knsupc = sp_ienv_dist(3);
 #ifdef oneside    
     maxrecvsz = knsupc * nrhs + SUPERLU_MAX( XK_H, LSUM_H ) + 1;
-    double* newx;
-    if ( !(newx = (double*)SUPERLU_MALLOC( maxrecvsz* sizeof(double))))
-	    ABORT("Malloc fails for newx[].");	
-    double* sendbufval;
-    if ( !(sendbufval = (double*)SUPERLU_MALLOC(maxrecvsz* sizeof(double))))
-	    ABORT("Malloc fails for sendbufval[].");	
 #else    
     maxrecvsz = knsupc * nrhs + SUPERLU_MAX( XK_H, LSUM_H );
 #endif    
@@ -1140,12 +1134,12 @@ if(procs==1){
     memset(RDbase, 0, ( Pc * sizeof(long)));
     if( Pr > 1){
         for (i=0;i<Pr;i++){
-                BCbase[i] = recv_size_all[i]*maxrecvsz;
+                BCbase[i] = recv_size_all[i]*maxrecvsz*2;
         }
     }
     if(Pc > 1){
             for (i=0;i<Pc;i++){
-                    RDbase[i] = recv_size_all[Pr+i]*maxrecvsz;
+                    RDbase[i] = recv_size_all[Pr+i]*maxrecvsz*2;
             }
     }        
 	
@@ -1169,12 +1163,12 @@ if(procs==1){
     
     for (bcidx=0;bcidx<Pr;bcidx++){
         for(int tmp=0;tmp<bcidx;tmp++){
-            BC_taskbuf_offset[bcidx] += BufSize[tmp]*maxrecvsz;
+            BC_taskbuf_offset[bcidx] += BufSize[tmp]*maxrecvsz*2;
         }       
     }
     for (rdidx=0;rdidx<Pc;rdidx++){
         for(int tmp=0;tmp<rdidx;tmp++){ 
-                RD_taskbuf_offset[rdidx] += BufSize_rd[tmp]*maxrecvsz; 
+                RD_taskbuf_offset[rdidx] += BufSize_rd[tmp]*maxrecvsz*2; 
         }        
     }
     
@@ -1448,7 +1442,7 @@ if(Llu->inv == 1){
 					lib = LBi( gb, grid ); /* Local block number, row-wise. */
 					ii = X_BLK( lib );			
 #ifdef oneside
-                    BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz,Pc, sendbufval);
+                    BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz,Pc);
 #else		
 					BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d');
 #endif
@@ -1456,7 +1450,7 @@ if(Llu->inv == 1){
 					lk = -lk - 1;
 					il = LSUM_BLK( lk );
 #ifdef oneside 
-                    RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', &iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
+                    RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', &iam_row, RDcount, RDbase, &maxrecvsz, Pc);
 #else
 					RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d');
 #endif 
@@ -1502,7 +1496,6 @@ if(Llu->inv == 1){
 
                 lk = LBj( k, grid );    /* local block number */
                 
-                //crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
                 //printf("bcbc--333--iam=%d, checksum=%d,should be %d\n",iam, crc_16_val, (uint16_t)recvbuf0[XK_H-1]);
                 //fflush(stdout);
                 //for(int tmp=0; tmp<checkend+3;tmp++){
@@ -1513,11 +1506,13 @@ if(Llu->inv == 1){
                 //fflush(stdout);
                 //if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
                 checkend=BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs;
-                myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
+                crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
+                //myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
                 ////printf("bcbc--333--k=%lf, size=%d,checksum=%llu, myhash=%lf,should be %lf / %llu \n",recvbuf0[0], checkend, calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend), myhash, recvbuf0[XK_H-1], (unsigned long long)recvbuf0[XK_H-1]);
                 ////fflush(stdout);
-                if((myhash-recvbuf0[XK_H-1])!=0.0) {
+                //if((myhash-recvbuf0[XK_H-1])!=0.0) {
                 //if((recvbuf0[checkend-1]-recvbuf0[XK_H-1])!=0.0) {
+                if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
                     if(shift>0){
                         validBCQindex[bcidx-shift]=validBCQindex[bcidx];
                         validBCQindex[bcidx]=-1;
@@ -1536,7 +1531,7 @@ if(Llu->inv == 1){
 			
                 if(BcTree_getDestCount(LBtree_ptr[lk],'d')>0){
 	                //BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,checkend,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
-	                BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc,sendbufval);
+	                BcTree_forwardMessageOneSide(LBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d', &iam_col, BCcount, BCbase, &maxrecvsz, Pc);
 			    }
                 //printf("bcbc--444--iam=%d\n",iam);
                 //fflush(stdout);
@@ -1559,7 +1554,7 @@ if(Llu->inv == 1){
 		                dlsum_fmod_inv_master(lsum, x, xin, rtemp, nrhs, knsupc, k,
 			        	              fmod, nb, xsup, grid, Llu,
 			                	      stat_loc,sizelsum,sizertemp,0,maxsuper,thread_id,num_thread, 
-                                      &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz,sendbufval);	
+                                      &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz);	
 		
 			    } /* if lsub */
               
@@ -1610,15 +1605,15 @@ if(Llu->inv == 1){
                 lk = LBi( k, grid );
                 
                 checkend=RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs;
-                ////crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
-                myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                //myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
                 ////printf("rdrd--333--iam=%d, checksum=%lf,should be %lf\n",iam, sum, recvbuf0[LSUM_H-1]);
                 ////fflush(stdout);
                 //
-                ////if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
+                if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
                //// if((recvbuf0[checkend-1]-recvbuf0[LSUM_H-1])!=0.0) {
                 ////if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
-                if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
+                //if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
                    if(shift>0){
                         validRDQindex[rdidx-shift]=validRDQindex[rdidx];
                         validRDQindex[rdidx]=-1;
@@ -1722,7 +1717,7 @@ if(Llu->inv == 1){
                				    if(LBtree_ptr[lk]!=NULL){ 
                                     //printf("9----iam=%d,k=%d\n",iam,k);
                                     //fflush(stdout);
-       				        	    BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d',  &iam_col, BCcount, BCbase, &maxrecvsz,Pc,sendbufval); 
+       				        	    BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'d')*nrhs+XK_H,'d',  &iam_col, BCcount, BCbase, &maxrecvsz,Pc); 
                                     //printf("10----iam=%d,k=%d\n",iam,k);
                                     //fflush(stdout);
 			        	        }		  
@@ -1741,7 +1736,7 @@ if(Llu->inv == 1){
                				        dlsum_fmod_inv_master(lsum, x, xin, rtemp, nrhs, knsupc, k,
                				 	        	fmod, nb, xsup, grid, Llu,
                				 		        stat_loc,sizelsum,sizertemp,0,maxsuper,thread_id,num_thread,
-                                            &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz,sendbufval);	
+                                            &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz);	
                                     //printf("12----iam=%d,k=%d\n",iam,k);
                                     //fflush(stdout);
                			        } /* if lsub */
@@ -1759,7 +1754,7 @@ if(Llu->inv == 1){
 			                               	lsum[il + jj] += lsum[il + jj + ii*sizelsum];
                     //printf("14----iam=%d,k=%d\n",iam,k);
                     //fflush(stdout);
-					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il-LSUM_H],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', &iam_row, RDcount, RDbase, &maxrecvsz, Pc, sendbufval);
+					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il-LSUM_H],RdTree_GetMsgSize(LRtree_ptr[lk],'d')*nrhs+LSUM_H,'d', &iam_row, RDcount, RDbase, &maxrecvsz, Pc);
                     //printf("15----iam=%d,k=%d\n",iam,k);
                     //fflush(stdout);
                     } // end if RD xxxx YES
@@ -2069,10 +2064,6 @@ if(Llu->inv == 1){
 #ifdef oneside
         foMPI_Win_unlock_all(bc_winl);
         foMPI_Win_unlock_all(rd_winl);
-        //foMPI_Win_free(&bc_winl); 
-        //foMPI_Win_free(&rd_winl); 
-        //SUPERLU_FREE(BC_taskq);
-        //SUPERLU_FREE(RD_taskq);
         int tmp_size=(1+nfrecvx)*maxrecvsz;
         for(i=0;i<tmp_size;i++){
             BC_taskq[i]=(-1.0);
@@ -2085,22 +2076,22 @@ if(Llu->inv == 1){
 #else
 		SUPERLU_FREE(recvbuf_BC_fwd);
 
-		//for (lk=0;lk<nsupers_j;++lk){
-		//	if(LBtree_ptr[lk]!=NULL){
-		//		// if(BcTree_IsRoot(LBtree_ptr[lk],'d')==YES){			
-		//		BcTree_waitSendRequest(LBtree_ptr[lk],'d');		
-		//		// }
-		//		// deallocate requests here
-		//	}
-		//}
+		for (lk=0;lk<nsupers_j;++lk){
+			if(LBtree_ptr[lk]!=NULL){
+				// if(BcTree_IsRoot(LBtree_ptr[lk],'d')==YES){			
+				BcTree_waitSendRequest(LBtree_ptr[lk],'d');		
+				// }
+				// deallocate requests here
+			}
+		}
 
-		//for (lk=0;lk<nsupers_i;++lk){
-		//	if(LRtree_ptr[lk]!=NULL){		
-		//		RdTree_waitSendRequest(LRtree_ptr[lk],'d');		
-		//		// deallocate requests here
-		//	}
-		//}		
-		//MPI_Barrier( grid->comm );
+		for (lk=0;lk<nsupers_i;++lk){
+			if(LRtree_ptr[lk]!=NULL){		
+				RdTree_waitSendRequest(LRtree_ptr[lk],'d');		
+				// deallocate requests here
+			}
+		}		
+		MPI_Barrier( grid->comm );
 #endif
 #if ( VAMPIR>=1 )	
 		VT_traceoff();	
@@ -2485,7 +2476,7 @@ for (i=0;i<nroot_send;i++){
 		lib = LBi( gb, grid ); /* Local block number, row-wise. */
 		ii = X_BLK( lib );			
 #ifdef oneside		
-        BcTree_forwardMessageOneSide(UBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d',&iam_col,BCcount, BCbase, &maxrecvsz,Pc,sendbufval);
+        BcTree_forwardMessageOneSide(UBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d',&iam_col,BCcount, BCbase, &maxrecvsz,Pc);
 #else		
         BcTree_forwardMessageSimple(UBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d');
 #endif
@@ -2493,7 +2484,7 @@ for (i=0;i<nroot_send;i++){
 		lk = -lk - 1;
 		il = LSUM_BLK( lk );
 #ifdef oneside		
-        RdTree_forwardMessageOneSide(URtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs+LSUM_H,'d',&iam_row, RDcount, RDbase, &maxrecvsz, Pc,sendbufval);
+        RdTree_forwardMessageOneSide(URtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs+LSUM_H,'d',&iam_row, RDcount, RDbase, &maxrecvsz, Pc);
 #else          
 		RdTree_forwardMessageSimple(URtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs+LSUM_H,'d');
 #endif
@@ -2539,14 +2530,14 @@ while(nbrecv1< nbrecvx+nbrecvmod){
            
             //if (totalsolveBC % 10 == 0){
             checkend=BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs;
-            ////crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
+            crc_16_val=crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(double)*checkend);
             ////printf("bcbc--222--iam=%d, checksum=%lf,should be %lf\n",iam, recvbuf0[checkend-1], recvbuf0[XK_H-1]);
             ////fflush(stdout);
-            myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
+            //myhash=calcul_hash(&recvbuf0[XK_H],sizeof(double)*checkend);
             //
-            if((myhash-recvbuf0[XK_H-1])!=0.0) {
+            //if((myhash-recvbuf0[XK_H-1])!=0.0) {
             ////if(myhash!=(unsigned int)recvbuf0[XK_H-1]) {
-            ////if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
+            if(crc_16_val!=(uint16_t)recvbuf0[XK_H-1]) {
                if(shift>0){
                     validBCQindex_u[bcidx-shift]=validBCQindex_u[bcidx];
                     validBCQindex_u[bcidx]=-1;
@@ -2564,7 +2555,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 //printf("iam=%d,before BcTree_forwardMessageOneSide\n",iam);
                 //fflush(stdout);
                 //BcTree_forwardMessageOneSide(UBtree_ptr[lk],recvbuf0,checkend,'d',&iam_col, BCcount, BCbase, &maxrecvsz, Pc,sendbufval);	
-                BcTree_forwardMessageOneSide(UBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d',&iam_col, BCcount, BCbase, &maxrecvsz, Pc,sendbufval);	
+                BcTree_forwardMessageOneSide(UBtree_ptr[lk],recvbuf0,BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d',&iam_col, BCcount, BCbase, &maxrecvsz, Pc);	
                 //printf("iam=%d,end BcTree_forwardMessageOneSide\n",iam);
                 //fflush(stdout);
             }
@@ -2574,7 +2565,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 			dlsum_bmod_inv_master(lsum, x, &recvbuf0[XK_H], rtemp, nrhs, k, bmod, Urbs,Urbs2,
 			            	Ucb_indptr, Ucb_valptr, xsup, grid, Llu, 
 				            send_req, stat_loc, sizelsum,sizertemp,thread_id,num_thread,
-                            &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz, sendbufval);
+                            &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz);
             //printf("iam=%d,End dlsum_bmod_inv_master debug_count=%d,shift=%d\n",iam,debug_count,shift);
             //fflush(stdout);
 
@@ -2617,7 +2608,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 lk = LBi( k, grid );
                 //if (totalsolveRD %10 == 0){ 
                 checkend=RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs;
-                ////crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                crc_16_val=crc_16((unsigned char*)&recvbuf0[LSUM_H],sizeof(double)*checkend);
 	            ////crc_32_val = 0xffffffffL;
                 ////for (int tmp=0; tmp<checkend; ++tmp){
                 ////    crc_16_val=update_crc_16(crc_16_val, recvbuf0[tmp]); 
@@ -2633,8 +2624,8 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
             
                 ////if(myhash!=(unsigned int)recvbuf0[LSUM_H-1]) {
-                if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
-                //if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
+                //if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
+                if(crc_16_val!=(uint16_t)recvbuf0[LSUM_H-1]) {
                    if(shift>0){
                         validRDQindex_u[rdidx-shift]=validRDQindex_u[rdidx];
                         validRDQindex_u[rdidx]=-1;
@@ -2732,14 +2723,14 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 #endif
 
 						if(UBtree_ptr[lk]!=NULL){ 
-							BcTree_forwardMessageOneSide(UBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d',&iam_col,BCcount, BCbase, &maxrecvsz,Pc, sendbufval);
+							BcTree_forwardMessageOneSide(UBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk],'d')*nrhs+XK_H,'d',&iam_col,BCcount, BCbase, &maxrecvsz,Pc);
 						}							
 						
 						if ( Urbs[lk] )
 							dlsum_bmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, k, bmod, Urbs,Urbs2,
 									            Ucb_indptr, Ucb_valptr, xsup, grid, Llu,
 									            send_req, stat_loc, sizelsum,sizertemp,thread_id,num_thread,
-                                                &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz, sendbufval);
+                                                &iam_row, RDcount, RDbase, &iam_col, BCcount, BCbase, Pc, maxrecvsz);
 
 					}else{ // if(RdTree_IsRoot(URtree_ptr[lk],'d')==YES)
 						il = LSUM_BLK( lk );		  
@@ -2752,7 +2743,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 							for (jj=0;jj<knsupc*nrhs;jj++)
 								lsum[il+ jj ] += lsum[il + jj + ii*sizelsum];	
 												
-						RdTree_forwardMessageOneSide(URtree_ptr[lk],&lsum[il-LSUM_H],RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs+LSUM_H,'d',&iam_row, RDcount,RDbase, &maxrecvsz, Pc, sendbufval); 
+						RdTree_forwardMessageOneSide(URtree_ptr[lk],&lsum[il-LSUM_H],RdTree_GetMsgSize(URtree_ptr[lk],'d')*nrhs+LSUM_H,'d',&iam_row, RDcount,RDbase, &maxrecvsz, Pc); 
 					}//if(RdTree_IsRoot(URtree_ptr[lk],'d')==YES)						
                 }//if ( bmod_tmp==0 )
             if (RDis_solved[recvRankNum] == BufSize_urd[recvRankNum]) {

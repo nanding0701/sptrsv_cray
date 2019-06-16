@@ -504,7 +504,7 @@ void zlsum_fmod_inv
 		nsupr = lsub[1];
 
 		// printf("nlb: %5d lk: %5d\n",nlb,lk);
-		// fflush(stdout);
+		// //fflush(stdout);
 
 		krow = PROW( k, grid );
 		if(myrow==krow){
@@ -715,7 +715,7 @@ void zlsum_fmod_inv
 								}
 								// for (i=0 ; i<iknsupc*nrhs ; i++){
 								// printf("x_lsum: %f %f\n",x[ii+i].r,x[ii+i].i);
-								// fflush(stdout);
+								// //fflush(stdout);
 								// }
 
 #if ( PROFlevel>=1 )
@@ -927,7 +927,7 @@ void zlsum_fmod_inv
 						
 							// for (i=0 ; i<iknsupc*nrhs ; i++){
 							// printf("x_lsum: %f %f\n",x[ii+i].r,x[ii+i].i);
-							// fflush(stdout);
+							// //fflush(stdout);
 							// }
 						
 
@@ -1016,7 +1016,15 @@ void zlsum_fmod_inv_master
  int_t recurlevel,
  int_t maxsuper,
  int thread_id,
- int num_thread
+ int num_thread,
+ int* iam_row,
+ int* RDcount, 
+ long* RDbase, 
+ int* iam_col, 
+ int* BCcount, 
+ long* BCbase, 
+ int Pc, 
+ int maxrecvsz
 )
 {
     doublecomplex alpha = {1.0, 0.0}, beta = {0.0, 0.0},malpha={-1.0, 0.0};
@@ -1029,7 +1037,7 @@ void zlsum_fmod_inv_master
     int_t  *ilsum = Llu->ilsum; /* Starting position of each supernode in lsum.   */
     int_t  *frecv = Llu->frecv;
     int_t  **fsendx_plist = Llu->fsendx_plist;
-	int_t  luptr_tmp,luptr_tmp1,lptr1_tmp,maxrecvsz, idx_i, idx_v,idx_n,  idx_l, fmod_tmp, lbstart,lbend,nn,Nchunk,nlb_loc,remainder;
+	int_t  luptr_tmp,luptr_tmp1,lptr1_tmp, idx_i, idx_v,idx_n,  idx_l, fmod_tmp, lbstart,lbend,nn,Nchunk,nlb_loc,remainder;
 	int thread_id1;
 	int m;	
 	flops_t ops_loc=0.0;    	
@@ -1066,12 +1074,12 @@ void zlsum_fmod_inv_master
 		lk = LBj( k, grid ); /* Local block number, column-wise. */
 
 		// printf("ya1 %5d k %5d lk %5d\n",thread_id,k,lk);
-		// fflush(stdout);	
+		// //fflush(stdout);	
 
 		lsub = Llu->Lrowind_bc_ptr[lk];
 
 		// printf("ya2 %5d k %5d lk %5d\n",thread_id,k,lk);
-		// fflush(stdout);	
+		// //fflush(stdout);	
 
 		lusup = Llu->Lnzval_bc_ptr[lk];
 		lloc = Llu->Lindval_loc_bc_ptr[lk];
@@ -1080,7 +1088,7 @@ void zlsum_fmod_inv_master
 		nsupr = lsub[1];
 
 		// printf("nlb: %5d lk: %5d\n",nlb,lk);
-		// fflush(stdout);
+		// //fflush(stdout);
 
 		krow = PROW( k, grid );
 		if(myrow==krow){
@@ -1102,6 +1110,10 @@ void zlsum_fmod_inv_master
 		if(m>4*maxsuper || nrhs>10){ 
 			// if(m<1){
 			// TIC(t1);
+#if ( DEBUGlevel>=1 )
+                //printf("lsum--111---iam=%d\n",iam);
+                //fflush(stdout);
+#endif		
 			Nchunk=num_thread;
 			nlb_loc = floor(((double)nlb)/Nchunk);
 			remainder = nlb % Nchunk;
@@ -1186,6 +1198,10 @@ void zlsum_fmod_inv_master
 		}
 
 		}else{ 
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--222---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 
 #if ( PROFlevel>=1 )
 			TIC(t1);
@@ -1283,15 +1299,22 @@ void zlsum_fmod_inv_master
 							z_add(&lsum[il + jj ],
 								  &lsum[il + jj ],
 								  &lsum[il + jj + ii*sizelsum]);
-
-					RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'z')*nrhs+LSUM_H,'z');
-					// }
+#ifdef oneside
+					RdTree_forwardMessageOneSide(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'z')*nrhs+LSUM_H,'z',iam_row, RDcount, RDbase, &maxrecvsz, Pc);
+#else
+                    RdTree_forwardMessageSimple(LRtree_ptr[lk],&lsum[il - LSUM_H ],RdTree_GetMsgSize(LRtree_ptr[lk],'z')*nrhs+LSUM_H,'z');
+#endif
+                    // }
 
 
 				} else { /* Diagonal process: X[i] += lsum[i]. */
 
-
-
+            
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--333---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
+            
 					// if ( frecv[lk]==0 ) { /* Becomes a leaf node. */
 
 #if ( PROFlevel>=1 )
@@ -1308,6 +1331,10 @@ void zlsum_fmod_inv_master
 								  &lsum[il + jj + ii*sizelsum]);
 
 					ii = X_BLK( lk );
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--333111---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 					// for (jj=0;jj<num_thread;jj++)
 					RHS_ITERATE(j)
 						#ifdef _OPENMP	
@@ -1319,6 +1346,10 @@ void zlsum_fmod_inv_master
 								  &lsum[i + il + j*iknsupc] );
 
 					// fmod[lk] = -1; /* Do not solve X[k] in the future. */
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--333222---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 					lk = LBj( ik, grid );/* Local block number, column-wise. */
 					lsub1 = Llu->Lrowind_bc_ptr[lk];
 					lusup1 = Llu->Lnzval_bc_ptr[lk];
@@ -1359,17 +1390,29 @@ void zlsum_fmod_inv_master
 					}
 					// for (i=0 ; i<iknsupc*nrhs ; i++){
 					// printf("x_usum: %f %f\n",x[ii+i].r,x[ii+i].i);
-					// fflush(stdout);
+					// //fflush(stdout);
 					// }
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--333444---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 
 #if ( PROFlevel>=1 )
 					TOC(t2, t1);
 					stat[thread_id]->utime[SOL_TRSM] += t2;
 
 #endif	
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--333555---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 
 					stat[thread_id]->ops[SOLVE] += 4 * iknsupc * (iknsupc - 1) * nrhs
 					+ 10 * knsupc * nrhs; /* complex division */
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--333666---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 					
 #if ( DEBUGlevel>=2 )
 					printf("(%2d) Solve X[%2d]\n", iam, ik);
@@ -1379,9 +1422,21 @@ void zlsum_fmod_inv_master
 					 * Send Xk to process column Pc[k].
 					 */
 
-					if(LBtree_ptr[lk]!=NULL)
-						BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'z')*nrhs+XK_H,'z');
-
+					if(LBtree_ptr[lk]!=NULL){
+#ifdef oneside						
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--444---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
+						BcTree_forwardMessageOneSide(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'z')*nrhs+XK_H,'z',iam_col, BCcount, BCbase, &maxrecvsz, Pc);
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--555---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
+#else						
+                        BcTree_forwardMessageSimple(LBtree_ptr[lk],&x[ii - XK_H],BcTree_GetMsgSize(LBtree_ptr[lk],'z')*nrhs+XK_H,'z');
+#endif
+                    }    
 					/*
 					 * Perform local block modifications.
 					 */
@@ -1392,10 +1447,19 @@ void zlsum_fmod_inv_master
 					{
 						nlb1 = lsub1[0] - 1;
 
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--666---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 
 						zlsum_fmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, iknsupc, ik,
 								fmod, nlb1, xsup,
-								grid, Llu, stat,sizelsum,sizertemp,1+recurlevel,maxsuper,thread_id,num_thread);
+								grid, Llu, stat,sizelsum,sizertemp,1+recurlevel,maxsuper,thread_id,num_thread,
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc,maxrecvsz);
+#if ( DEBUGlevel>=1 )
+            //printf("lsum--777---iam=%d\n",iam);
+            //fflush(stdout);
+#endif		
 					}		   
 
 					// } /* if frecv[lk] == 0 */
@@ -1653,7 +1717,7 @@ void zlsum_bmod_inv
 							}
 								// for (i=0 ; i<iknsupc*nrhs ; i++){
 								// printf("x_usum: %f %f\n",x[ii+i].r,x[ii+i].i);
-								// fflush(stdout);
+								// //fflush(stdout);
 								// }
 					
 		#if ( PROFlevel>=1 )
@@ -1673,7 +1737,7 @@ void zlsum_bmod_inv
 
 							 // for (i=0 ; i<iknsupc*nrhs ; i++){
 								// printf("xre: %f\n",x[ii+i]);
-								// fflush(stdout);
+								// //fflush(stdout);
 							// }
 							if(UBtree_ptr[lk1]!=NULL){							
 #ifdef _OPENMP
@@ -1865,7 +1929,7 @@ void zlsum_bmod_inv
 
 						 // for (i=0 ; i<iknsupc*nrhs ; i++){
 							// printf("xre: %f\n",x[ii+i]);
-							// fflush(stdout);
+							// //fflush(stdout);
 						// }
 						if(UBtree_ptr[lk1]!=NULL){
 #ifdef _OPENMP
@@ -1928,7 +1992,15 @@ void zlsum_bmod_inv_master
  int_t sizelsum,
  int_t sizertemp,
  int thread_id,
- int num_thread
+ int num_thread,
+ int* iam_row,
+ int* RDcount, 
+ long* RDbase, 
+ int* iam_col, 
+ int* BCcount, 
+ long* BCbase, 
+ int Pc, 
+ int maxrecvsz
  )
 {
 	/*
@@ -1979,7 +2051,7 @@ void zlsum_bmod_inv_master
 	
 	 
 	// printf("Urbs2[lk] %5d lk %5d nub %5d\n",Urbs2[lk],lk,nub);
-	// fflush(stdout);
+	// //fflush(stdout);
 	
 	if(nub>num_thread){
 	// if(nub>0){
@@ -2125,8 +2197,11 @@ void zlsum_bmod_inv_master
 						z_add(&lsum[il + jj ],
 							  &lsum[il + jj ],
 							  &lsum[il + jj + ii*sizelsum]);
-				RdTree_forwardMessageSimple(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'z')*nrhs+LSUM_H,'z');
-
+#ifdef oneside				
+                RdTree_forwardMessageOneSide(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'z')*nrhs+LSUM_H,'z',iam_row, RDcount, RDbase, &maxrecvsz, Pc);
+#else				
+                RdTree_forwardMessageSimple(URtree_ptr[ik],&lsum[il - LSUM_H ],RdTree_GetMsgSize(URtree_ptr[ik],'z')*nrhs+LSUM_H,'z');
+#endif
 #if ( DEBUGlevel>=2 )
 				printf("(%2d) Sent LSUM[%2.0f], size %2d, to P %2d\n",
 						iam, lsum[il-LSUM_H], iknsupc*nrhs+LSUM_H, p);
@@ -2215,11 +2290,15 @@ void zlsum_bmod_inv_master
 
 					 // for (i=0 ; i<iknsupc*nrhs ; i++){
 						// printf("xre: %f\n",x[ii+i]);
-						// fflush(stdout);
+						// //fflush(stdout);
 					// }
 					if(UBtree_ptr[lk1]!=NULL){
-					BcTree_forwardMessageSimple(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'z')*nrhs+XK_H,'z'); 
-					} 
+#ifdef oneside					
+                        BcTree_forwardMessageOneSide(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'z')*nrhs+XK_H,'z',iam_col, BCcount, BCbase, &maxrecvsz, Pc); 
+#else					
+                        BcTree_forwardMessageSimple(UBtree_ptr[lk1],&x[ii - XK_H],BcTree_GetMsgSize(UBtree_ptr[lk1],'z')*nrhs+XK_H,'z'); 
+#endif
+                    } 
 
 					/*
 					 * Perform local block modifications.
@@ -2231,7 +2310,8 @@ void zlsum_bmod_inv_master
 						{
 						zlsum_bmod_inv_master(lsum, x, &x[ii], rtemp, nrhs, gik, bmod, Urbs,Urbs2,
 								Ucb_indptr, Ucb_valptr, xsup, grid, Llu,
-								send_req, stat, sizelsum,sizertemp,thread_id,num_thread);
+								send_req, stat, sizelsum,sizertemp,thread_id,num_thread,
+                                iam_row, RDcount, RDbase, iam_col, BCcount, BCbase, Pc, maxrecvsz);
 						}
 					}
 				// } /* if brecv[ik] == 0 */
