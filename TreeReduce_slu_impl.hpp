@@ -84,25 +84,27 @@ namespace SuperLU_ASYNCOMM {
 	    double t1;
         long RDsendoffset=0;
         Int new_iProc;
+        int new_msgSize = msgSize * 2;
+        int new_maxrecvsz = *maxrecvsz *2;
         //Int new_msgSize = msgSize + 1;
         if(this->myRank_!=this->myRoot_){
             //t1 = SuperLU_timer_();
 		    Int iProc = this->myRoot_;
 		    new_iProc = iProc%Pc;
-		    RDsendoffset = RDbase[new_iProc] + RDcount[new_iProc]*(*maxrecvsz);
+		    RDsendoffset = RDbase[new_iProc] + RDcount[new_iProc]*(new_maxrecvsz);
  		    
-            //printf("I am %d, row_id %d, send to world rank %d/%d, RDcount[%d]=%d, RDbase[%d]=%ld,RDsendoffset=%ld, maxrecvsz=%d\n",iam, *iam_row, iProc, new_iProc, new_iProc, RDcount[new_iProc], new_iProc, RDbase[new_iProc], RDsendoffset, *maxrecvsz);
-		    //fflush(stdout);
+            printf("I row_id %d, send to world rank %d/%d, RDcount[%d]=%d, RDbase[%d]=%ld,RDsendoffset=%ld, maxrecvsz=%d\n",*iam_row, iProc, new_iProc, new_iProc, RDcount[new_iProc], new_iProc, RDbase[new_iProc], RDsendoffset, new_maxrecvsz);
+		    fflush(stdout);
 		
             //t1 = SuperLU_timer_();
             //foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, RDsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, rd_winl);		  
-            foMPI_Put(locBuffer, msgSize, MPI_DOUBLE, new_iProc, RDsendoffset, msgSize, MPI_DOUBLE,rd_winl_u);		  
+            foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, RDsendoffset, new_msgSize, MPI_DOUBLE,rd_winl);		  
 	        //onesidecomm_bc += SuperLU_timer_() - t1;
 		    //foMPI_Accumulate(&my_RDtasktail, 1, MPI_DOUBLE, new_iProc, *iam_row, 1, MPI_DOUBLE, foMPI_SUM, rd_winl);		  
 	        //onesidecomm_bc[iam] += SuperLU_timer_() - t1;
 		    RDcount[new_iProc] += 1; 
- 		    //printf("End---I am %d, row_id %d, send to world rank %d/%d \n",iam, *iam_row,iProc, new_iProc);
-		    //fflush(stdout);
+ 		    printf("End---I row_id %d, send to world rank %d/%d \n", *iam_row,iProc, new_iProc);
+		    fflush(stdout);
 	}
  }
 

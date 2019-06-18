@@ -328,13 +328,13 @@ MPI_Comm row_comm;
 MPI_Comm col_comm;
 int* BufSize;
 int* BufSize_rd;
-int *validBCQindex;
-int *validRDQindex;
+int *keep_validBCQindex;
+int *keep_validRDQindex;
 int *recv_size_all;
 int* BufSize_u;
 int* BufSize_urd;
-int *validBCQindex_u;
-int *validRDQindex_u;
+int *keep_validBCQindex_u;
+int *keep_validRDQindex_u;
 int *recv_size_all_u;
 double* BC_taskq;
 double* RD_taskq;
@@ -532,10 +532,10 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
     	ABORT("Malloc fails for BufSize_rd[]");	
     memset(BufSize_rd, 0, Pc * sizeof(int));
 	
-    if ( !(validBCQindex = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
-    	ABORT("Malloc fails for  validBCQindex[]");	
-    if ( !(validRDQindex = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
-    	ABORT("Malloc fails for validRDQindex[]");	
+    if ( !(keep_validBCQindex = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
+    	ABORT("Malloc fails for  keep_validBCQindex[]");	
+    if ( !(keep_validRDQindex = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
+    	ABORT("Malloc fails for keep_validRDQindex[]");	
     
     if ( !(BufSize_u = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
     	ABORT("Malloc fails for BufSize_u[]");	
@@ -545,18 +545,18 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
     	ABORT("Malloc fails for BufSize_urd[]");	
     memset(BufSize_urd, 0, Pc * sizeof(int));
 	
-    if ( !(validBCQindex_u = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
-    	ABORT("Malloc fails for  validBCQindex_u[]");	
-    if ( !(validRDQindex_u = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
-    	ABORT("Malloc fails for validRDQindex_u[]");	
+    if ( !(keep_validBCQindex_u = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
+    	ABORT("Malloc fails for  keep_validBCQindex_u[]");	
+    if ( !(keep_validRDQindex_u = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
+    	ABORT("Malloc fails for keep_validRDQindex_u[]");	
     
     for (i=0; i< Pr; i++){
-        validBCQindex[i]=-1; 
-        validBCQindex_u[i]=-1; 
+        keep_validBCQindex[i]=-1; 
+        keep_validBCQindex_u[i]=-1; 
     } 
     for (i=0; i< Pc; i++){
-        validRDQindex[i]=-1; 
-        validRDQindex_u[i]=-1; 
+        keep_validRDQindex[i]=-1; 
+        keep_validRDQindex_u[i]=-1; 
     } 
     
     MPI_Request *col_req;
@@ -1484,8 +1484,8 @@ pddistribute(fact_t fact, int_t n, SuperMatrix *A,
      for(i=0; i<Pr; i++){
         //printf("Bufsuze=%d\n",BufSize[i]);
          if(BufSize[i]>0){
-            validBCQindex[j]=i;
-            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex[j],BufSize[i]);
+            keep_validBCQindex[j]=i;
+            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,keep_validBCQindex[j],BufSize[i]);
             j += 1;
         }    
      }
@@ -1708,7 +1708,7 @@ if ( !iam) printf(".. Construct Bcast tree for L: %.2f\t\n", t);
     j=0; 
     for(i=0; i<Pc; i++){
        if(BufSize_rd[i]!=0){
-           validRDQindex[j]=i;
+           keep_validRDQindex[j]=i;
            j += 1;
        }    
     }
@@ -1879,8 +1879,8 @@ if ( !iam) printf(".. Construct Reduce tree for L: %.2f\t\n", t);
      j=0; 
      for(i=0; i<Pr; i++){
          if(BufSize_u[i]>0){
-            validBCQindex_u[j]=i;
-            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,validBCQindex_u[j],BufSize_u[i]);
+            keep_validBCQindex_u[j]=i;
+            //printf("iam=%d, iam_col=%d, I need to check from %d, size=%d\n",iam, iam_col,keep_validBCQindex_u[j],BufSize_u[i]);
             //fflush(stdout);
             j += 1;
         }    
@@ -2113,7 +2113,7 @@ if ( !iam) printf(".. Construct Bcast tree for U: %.2f\t\n", t);
     j=0; 
     for(i=0; i<Pc; i++){
        if(BufSize_urd[i]!=0){
-           validRDQindex_u[j]=i;
+           keep_validRDQindex_u[j]=i;
            j += 1;
        }    
     }

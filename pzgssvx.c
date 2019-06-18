@@ -500,6 +500,9 @@ at the top-level directory.
  * </pre>
  */
 
+#ifdef oneside
+int num_refine=0;
+#endif
 void
 pzgssvx(superlu_dist_options_t *options, SuperMatrix *A, 
 	ScalePermstruct_t *ScalePermstruct,

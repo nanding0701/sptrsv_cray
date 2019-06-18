@@ -1122,6 +1122,10 @@ if(procs==1){
     int recvRankNum=-1;
     uint16_t crc_16_val;
     double myhash;
+    int *validBCQindex;
+    int *validRDQindex;
+    int *validBCQindex_u;
+    int *validRDQindex_u;
 
     BCcount = (int*)SUPERLU_MALLOC( Pr * sizeof(int));   // this needs to be optimized for 1D row mapping
     RDcount = (int*)SUPERLU_MALLOC( Pc * sizeof(int));   // this needs to be optimized for 1D row mapping
@@ -1132,6 +1136,16 @@ if(procs==1){
     RDbase = (long*)SUPERLU_MALLOC( Pc * sizeof(long));   // this needs to be optimized for 1D row mapping
     memset(BCbase, 0, ( Pr * sizeof(long)));
     memset(RDbase, 0, ( Pc * sizeof(long)));
+    
+    if ( !(validBCQindex = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
+    	ABORT("Malloc fails for validBCQindex[]");	
+    if ( !(validRDQindex = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
+    	ABORT("Malloc fails for validRDQindex[]");	
+    if ( !(validBCQindex_u = (int*)SUPERLU_MALLOC( Pr * sizeof(int))) )  
+    	ABORT("Malloc fails for validBCQindex_u[]");	
+    if ( !(validRDQindex_u = (int*)SUPERLU_MALLOC( Pc *sizeof(int))) )  
+    	ABORT("Malloc fails for validRDQindex_u[]");	
+    
     if( Pr > 1){
         for (i=0;i<Pr;i++){
                 BCbase[i] = recv_size_all[i]*maxrecvsz*2;
@@ -2040,7 +2054,7 @@ if(Llu->inv == 1){
 
 #if ( DEBUGlevel==2 )
 		{
-			printf("(%d) .. After L-solve: y =\n", iam);
+			printf("(%d*2) .. After L-solve: y =\n", iam);
 			for (i = 0, k = 0; k < nsupers; ++k) {
 				krow = PROW( k, grid );
 				kcol = PCOL( k, grid );
@@ -2272,24 +2286,6 @@ if(Llu->inv == 1){
     }        
 	
 
-	//BC_buffer_size=(nbrecvx+1)*maxrecvsz;
-    //printf("iam=%d, BC_buffer_size=%d,nbrecvx=%d,knsupc=%d,nrhs=%d,XK_H=%d, LSUM_H=%d\n",iam,BC_buffer_size,nbrecvx,knsupc,nrhs,XK_H, LSUM_H);
-    //fflush(stdout);
-    //RD_buffer_size=(nbrecvmod+1)*maxrecvsz;
-	
-    //BC_taskq = (double*)SUPERLU_MALLOC( BC_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-    //RD_taskq_u = (double*)SUPERLU_MALLOC( RD_buffer_size * sizeof(double));   // this needs to be optimized for 1D row mapping
-	
-    
-    //for(i=0; i<BC_buffer_size; i++){
-    //        BC_taskq[i] = initval;
-    //}
-    //for(i=0; i<RD_buffer_size; i++){
-    //        RD_taskq_u[i] = initval;
-    //}
-
-   
-
     for (bcidx=0;bcidx<Pr;bcidx++){
         for(int tmp=0;tmp<bcidx;tmp++){
             BC_taskbuf_offset[bcidx] += BufSize_u[tmp]*maxrecvsz;
@@ -2301,8 +2297,6 @@ if(Llu->inv == 1){
              }        
     }
     
-    //foMPI_Win_create(BC_taskq, (BC_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, col_comm, &bc_winl);
-	//foMPI_Win_create(RD_taskq_u, (RD_buffer_size)*sizeof(double), sizeof(double), MPI_INFO_NULL, row_comm, &rd_winl_u);
     foMPI_Win_lock_all(0, bc_winl);
     foMPI_Win_lock_all(0, rd_winl);
 #else
@@ -2621,7 +2615,7 @@ while(nbrecv1< nbrecvx+nbrecvmod){
                 ////if((uint32_t)crc_32_val!=(uint32_t)recvbuf0[checkend]) {
                 ////if((int)checksum!=(int)recvbuf0[checkend]) {
                 ////if(abs(checksum-recvbuf0[checkend])!=0) {
-                myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
+                //myhash=calcul_hash(&recvbuf0[LSUM_H],sizeof(double)*checkend);
             
                 ////if(myhash!=(unsigned int)recvbuf0[LSUM_H-1]) {
                 //if((myhash-recvbuf0[LSUM_H-1])!=0.0) {
@@ -3046,8 +3040,6 @@ while(nbrecv1< nbrecvx+nbrecvmod){
 #ifdef oneside
         foMPI_Win_unlock_all(bc_winl);
         foMPI_Win_unlock_all(rd_winl);
-        //foMPI_Win_free(&bc_winl_u); 
-        //foMPI_Win_free(&rd_winl_u); 
         SUPERLU_FREE(BC_taskq);
         SUPERLU_FREE(RD_taskq);
 #else		

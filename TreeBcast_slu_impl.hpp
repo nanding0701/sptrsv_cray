@@ -212,15 +212,15 @@ namespace SuperLU_ASYNCOMM {
         Int new_iProc;
         int new_msgSize = msgSize * 2;
         int new_maxrecvsz = *maxrecvsz *2;
-        int iam;
-        MPI_Comm_rank(MPI_COMM_WORLD,&iam);
+        //int iam;
+        //MPI_Comm_rank(MPI_COMM_WORLD,&iam);
         //Int new_msgSize = msgSize +1;
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
                 Int iProc = this->myDests_[idxRecv];
 		        new_iProc = iProc/Pc;
                 BCsendoffset = BCbase[new_iProc] + BCcount[new_iProc]*(new_maxrecvsz);
- 		        printf("START--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
-		        fflush(stdout);
+ 		        //printf("START--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
+		        //fflush(stdout);
                 ////double* tmp=&locBuffer[0]; 
                 //for(int i=0; i<msgSize; i++){
                 //    printf("iam=%d, to %d,base=%lu, count=%d, maxrecvsz=%d, address=%lu, val[%d]=%lf,%lf\n",iam, iProc, BCbase[new_iProc], BCcount[new_iProc], new_maxrecvsz, BCsendoffset, i, locBuffer[i],locBuffer[i]);
@@ -233,8 +233,8 @@ namespace SuperLU_ASYNCOMM {
                 foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
 	            //onesidecomm_bc += SuperLU_timer_() - t1;
                 BCcount[new_iProc] += 1;
- 		        printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
-		        fflush(stdout);
+ 		        //printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
+		        //fflush(stdout);
 	    } // for (iProc)
     }
 #endif
