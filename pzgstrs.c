@@ -2084,20 +2084,20 @@ if(Llu->inv == 1){
 		t = SuperLU_timer_() - t;
 		stat->utime[SOL_TOT] += t;
 		if ( !iam ) {
-			//printf(".. L-solve time\t%8.4f\n", t);
-			printf(".. L-solve time\t%8.4f,comm=\t%8.4f\n", t,onesidecomm_bc);
-			fflush(stdout);
+			printf(".. L-solve time\t%8.4f\n", t);
+			//printf(".. L-solve time\t%8.4f,comm=\t%8.4f\n", t,onesidecomm_bc);
+			//fflush(stdout);
 		}
 
 
-        double onesidecomm_bc_max;
+        //double onesidecomm_bc_max;
 		MPI_Reduce (&t, &tmax, 1, MPI_DOUBLE,
 				MPI_MAX, 0, grid->comm);
-		MPI_Reduce (&onesidecomm_bc, &onesidecomm_bc_max, 1, MPI_DOUBLE,
-				MPI_MAX, 0, grid->comm);
+		//MPI_Reduce (&onesidecomm_bc, &onesidecomm_bc_max, 1, MPI_DOUBLE,
+		//		MPI_MAX, 0, grid->comm);
 		if ( !iam ) {
-			//printf(".. L-solve time (MAX) \t%8.4f\n", tmax);	
-			printf(".. L-solve time (MAX) \t%8.4f,comm=\t%8.4f\n", tmax,onesidecomm_bc_max);	
+			printf(".. L-solve time (MAX) \t%8.4f\n", tmax);	
+			//printf(".. L-solve time (MAX) \t%8.4f,comm=\t%8.4f\n", tmax,onesidecomm_bc_max);	
 
 			fflush(stdout);
 		}	

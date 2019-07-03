@@ -85,8 +85,8 @@ namespace SuperLU_ASYNCOMM {
         Int new_iProc;
         int new_msgSize = msgSize * 2;
         int new_maxrecvsz = *maxrecvsz *2;
-	    double t1;
-        t1 = SuperLU_timer_();
+	    //double t1;
+        //t1 = SuperLU_timer_();
         if(this->myRank_!=this->myRoot_){
             //t1 = SuperLU_timer_();
 		    Int iProc = this->myRoot_;
@@ -103,7 +103,7 @@ namespace SuperLU_ASYNCOMM {
  		    //printf("End---I row_id %d, send to world rank %d/%d \n", *iam_row,iProc, new_iProc);
 		    //fflush(stdout);
 	}
-	onesidecomm_bc += SuperLU_timer_() - t1;
+	//onesidecomm_bc += SuperLU_timer_() - t1;
  }
 
  #endif  

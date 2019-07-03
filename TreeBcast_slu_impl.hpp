@@ -211,8 +211,8 @@ namespace SuperLU_ASYNCOMM {
         Int new_iProc;
         int new_msgSize = msgSize * 2;
         int new_maxrecvsz = *maxrecvsz *2;
-	    double t1;
-        t1 = SuperLU_timer_();
+	    //double t1;
+        //t1 = SuperLU_timer_();
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
                 Int iProc = this->myDests_[idxRecv];
 		        new_iProc = iProc/Pc;
@@ -232,7 +232,7 @@ namespace SuperLU_ASYNCOMM {
  		        //printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
 		        //fflush(stdout);
 	    } // for (iProc)
-	    onesidecomm_bc += SuperLU_timer_() - t1;
+	    //onesidecomm_bc += SuperLU_timer_() - t1;
     }
 #endif
   template< typename T> 
