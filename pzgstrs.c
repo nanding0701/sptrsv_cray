@@ -1003,7 +1003,7 @@ pzgstrs(int_t n, LUstruct_t *LUstruct,
 
 #if ( DEBUGlevel>=1 )   
     /* Dump the L factor using matlab triple-let format. */
-    zDumpLblocks(iam, nsupers, grid, Glu_persist, Llu);
+    //zDumpLblocks(iam, nsupers, grid, Glu_persist, Llu);
 #endif
 
     /*---------------------------------------------------
@@ -2084,15 +2084,21 @@ if(Llu->inv == 1){
 		t = SuperLU_timer_() - t;
 		stat->utime[SOL_TOT] += t;
 		if ( !iam ) {
-			printf(".. L-solve time\t%8.4f\n", t);
+			//printf(".. L-solve time\t%8.4f\n", t);
+			printf(".. L-solve time\t%8.4f,comm=\t%8.4f\n", t,onesidecomm_bc);
 			fflush(stdout);
 		}
 
 
+        double onesidecomm_bc_max;
 		MPI_Reduce (&t, &tmax, 1, MPI_DOUBLE,
 				MPI_MAX, 0, grid->comm);
+		MPI_Reduce (&onesidecomm_bc, &onesidecomm_bc_max, 1, MPI_DOUBLE,
+				MPI_MAX, 0, grid->comm);
 		if ( !iam ) {
-			printf(".. L-solve time (MAX) \t%8.4f\n", tmax);	
+			//printf(".. L-solve time (MAX) \t%8.4f\n", tmax);	
+			printf(".. L-solve time (MAX) \t%8.4f,comm=\t%8.4f\n", tmax,onesidecomm_bc_max);	
+
 			fflush(stdout);
 		}	
 

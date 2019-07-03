@@ -207,14 +207,12 @@ namespace SuperLU_ASYNCOMM {
   
   template< typename T> 
     inline void TreeBcast_slu<T>::forwardMessageOneSideU(T * locBuffer, Int msgSize, int* iam_col, int* BCcount, long* BCbase, int* maxrecvsz, int Pc){
-	    //double t1;
         long BCsendoffset=0;
         Int new_iProc;
         int new_msgSize = msgSize * 2;
         int new_maxrecvsz = *maxrecvsz *2;
-        //int iam;
-        //MPI_Comm_rank(MPI_COMM_WORLD,&iam);
-        //Int new_msgSize = msgSize +1;
+	    double t1;
+        t1 = SuperLU_timer_();
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
                 Int iProc = this->myDests_[idxRecv];
 		        new_iProc = iProc/Pc;
@@ -227,15 +225,14 @@ namespace SuperLU_ASYNCOMM {
                 //    fflush(stdout);
                 //}
                 
-                //t1 = SuperLU_timer_();
                 //foMPI_Accumulate(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE, foMPI_REPLACE, bc_winl);		  
                 //foMPI_Put(tmp, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
                 foMPI_Put(locBuffer, new_msgSize, MPI_DOUBLE, new_iProc, BCsendoffset, new_msgSize, MPI_DOUBLE,bc_winl);
-	            //onesidecomm_bc += SuperLU_timer_() - t1;
                 BCcount[new_iProc] += 1;
  		        //printf("End--I col_id %d, send to world rank %d/%d \n", *iam_col,iProc, new_iProc);
 		        //fflush(stdout);
 	    } // for (iProc)
+	    onesidecomm_bc += SuperLU_timer_() - t1;
     }
 #endif
   template< typename T> 

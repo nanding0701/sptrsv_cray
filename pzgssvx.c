@@ -1235,8 +1235,8 @@ pzgssvx(superlu_dist_options_t *options, SuperMatrix *A,
 	fflush(stdout);
     }
 
-    printf(".. Ainfo mygid %5d   mysid %5d   nnz_loc " IFMT "  sum_loc  %e lsum_loc   %e nnz "IFMT " nnzLU %ld sum %e  lsum %e  N "IFMT "\n", iam_g,iam,Astore->rowptr[Astore->m_loc],asum.r+asum.i, lsum.r+lsum.i, nnz_tot,nnzLU,asum_tot.r+asum_tot.i,lsum_tot.r+lsum_tot.i,A->ncol);
-	fflush(stdout);
+    //printf(".. Ainfo mygid %5d   mysid %5d   nnz_loc " IFMT "  sum_loc  %e lsum_loc   %e nnz "IFMT " nnzLU %ld sum %e  lsum %e  N "IFMT "\n", iam_g,iam,Astore->rowptr[Astore->m_loc],asum.r+asum.i, lsum.r+lsum.i, nnz_tot,nnzLU,asum_tot.r+asum_tot.i,lsum_tot.r+lsum_tot.i,A->ncol);
+	//fflush(stdout);
 #endif				
 			
 #if 0
