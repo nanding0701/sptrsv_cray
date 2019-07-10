@@ -1,6 +1,5 @@
 #include "fompi.h"
 #include "checksum.h"
-#include "xxhash.h"
 
 extern foMPI_Win bc_winl;
 extern foMPI_Win rd_winl;

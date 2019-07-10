@@ -27,12 +27,12 @@ namespace SuperLU_ASYNCOMM{
     //    unsigned int const hash = XXH32(buffer, length, seed);
     //    return hash;
     //}
-    unsigned long long calcul_hash(const void* buffer, size_t length)
-    {
-            unsigned long long const seed = 0;   /* or any other value */
-            unsigned long long const hash = XXH64(buffer, length, seed);
-            return hash;
-    }
+    //unsigned long long calcul_hash(const void* buffer, size_t length)
+    //{
+    //        unsigned long long const seed = 0;   /* or any other value */
+    //        unsigned long long const hash = XXH64(buffer, length, seed);
+    //        return hash;
+    //}
 #endif    
     BcTree BcTree_Create_oneside(MPI_Comm comm, Int* ranks, Int rank_cnt, Int msgSize, double rseed, char precision, int* BufSize, int Pc){
 		assert(msgSize>0);
