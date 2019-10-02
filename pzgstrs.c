@@ -1169,8 +1169,8 @@ if(procs==1){
                     validRDQindex[i]=keep_validRDQindex[i];
                     validRDQindex_u[i]=keep_validRDQindex_u[i];
 #if ( DEBUGlevel>=1 )        
-                printf("iam=%d,RDbase[%d]=%lu,validRDQindex[%d]=%d,validRDQindex_u[%d]=%d\n",iam,i,RDbase[i],i,validRDQindex[i],i,validRDQindex_u[i]);
-                fflush(stdout);
+                    printf("iam=%d,RDbase[%d]=%lu,validRDQindex[%d]=%d,validRDQindex_u[%d]=%d\n",iam,i,RDbase[i],i,validRDQindex[i],i,validRDQindex_u[i]);
+                    fflush(stdout);
 #endif    
             }
     }        
@@ -1499,18 +1499,7 @@ if(Llu->inv == 1){
 			/* -----------------------------------------------------------
 			   Compute the internal nodes asynchronously by all processes.
 			   ----------------------------------------------------------- */
-
 #ifdef oneside
-#if ( DEBUGlevel>=1 )
-    printf("iam=%d, num_refine=%d,Leaf nodes solved,nfrecvx=%d,nfrecvmod=%d,totalsolveBC=%d,totalsolveRD=%d\n",iam,num_refine,nfrecvx,nfrecvmod,totalsolveBC,totalsolveRD);
-    fflush(stdout);
-    //if (num_refine==2){
-    //    for(int i=0; i<maxrecvsz*10*2; i++){
-    //        printf("iam=%d, BC_buffer[%d]=%f\n",iam, i,BC_taskq[i]);
-    //        fflush(stdout);
-    //    }
-    //}
-#endif    
     while( nfrecv1 < nfrecvx+nfrecvmod ){
         thread_id = 0;
         if (totalsolveBC < nfrecvx){
@@ -1550,7 +1539,8 @@ if(Llu->inv == 1){
                    }
                    continue;
                 }
-                    //t= SuperLU_timer_();
+                crc_16((unsigned char*)&recvbuf0[XK_H],sizeof(doublecomplex)*checkend);
+                //t= SuperLU_timer_();
                 //} 
                 totalsolveBC += 1; //BC_subtotal[bcidx] - BCis_solved[bcidx];
 			    BCis_solved[recvRankNum]++;
