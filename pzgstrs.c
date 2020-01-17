@@ -2123,7 +2123,6 @@ if(Llu->inv == 1){
 #ifdef oneside
         foMPI_Win_unlock_all(bc_winl);
         foMPI_Win_unlock_all(rd_winl);
-
 #else
 		SUPERLU_FREE(recvbuf_BC_fwd);
 
